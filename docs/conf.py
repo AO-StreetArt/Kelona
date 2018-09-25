@@ -127,7 +127,6 @@ html_theme_options = {
     'navbar_links': [
         ("Getting Started", "pages/quickstart"),
         ("HTTP API", "pages/api"),
-        ("Advanced Topics", "pages/advanced_index"),
     ],
 
     # Render the next and previous page links in navbar. (Default: true)

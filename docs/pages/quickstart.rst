@@ -1,7 +1,7 @@
 .. _quickstart:
 
-Getting Started with Clyman
-==============================
+Getting Started with Kelona
+===========================
 
 :ref:`Go Home <index>`
 
@@ -17,7 +17,7 @@ from the 'compose/min' folder:
 
    docker-compose up
 
-Once the services have started, test them by hitting Clyman's healthcheck endpoint:
+Once the services have started, test them by hitting Kelona's healthcheck endpoint:
 
 .. code-block:: bash
 
