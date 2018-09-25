@@ -28,8 +28,8 @@ script:
 - docker stop $(docker ps -aq)
 - docker rm $(docker ps -aq)
 after_success:
-  - docker build -t aostreetart/kelona:latest
-  - scripts/linux/push_docker.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH
+  - cd $TRAVIS_BUILD_DIR && docker build -t aostreetart/kelona:latest .
+  - cd $TRAVIS_BUILD_DIR && scripts/linux/push_docker.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH
 after_failure:
 - cd $TRAVIS_BUILD_DIR && cat logs/avc.log | grep ERROR
 notifications:
