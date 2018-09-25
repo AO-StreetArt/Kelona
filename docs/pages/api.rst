@@ -15,3 +15,4 @@ API Documentation
    :caption: Contents:
 
    Asset_API.rst
+   Asset_History_API.rst

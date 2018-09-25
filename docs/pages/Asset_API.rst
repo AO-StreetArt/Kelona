@@ -1,4 +1,4 @@
-.. _property_api:
+.. _asset_api:
 
 Asset API
 =========
