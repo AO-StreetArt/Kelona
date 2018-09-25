@@ -69,7 +69,7 @@ public class AssetHistoryController {
 
   // Asset Controller Logger
   private static final Logger logger =
-      LogManager.getLogger("adrestia.AssetController");
+      LogManager.getLogger("avc.AssetController");
 
   /**
   * Retrieve an Asset History.
