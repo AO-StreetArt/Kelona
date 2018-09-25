@@ -22,7 +22,7 @@ apply plugin: "io.spring.dependency-management"
 apply plugin: 'checkstyle'
 
 group = 'com.ao'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 sourceCompatibility = 1.8
 
 checkstyle {
@@ -30,7 +30,7 @@ checkstyle {
 }
 
 jar {
-	baseName = 'avc'
+	baseName = 'kelona'
 	version =  '0.0.1'
 }
 
