@@ -11,8 +11,10 @@ services:
 - docker
 before_install:
 - docker network create dvs
-- scripts/start_deps.sh
-- sleep 10
+- export NETWORK_INTERFACE_NAME=$(route | grep '^default' | grep -o '[^ ]*$')
+- export NETWORK_INTERFACE_ADDRESS=$(ip addr show $NETWORK_INTERFACE_NAME | grep -Po 'inet \K[\d.]+')
+- docker-compose -f compose/deps/docker-compose.yml up
+- sleep 480
 - docker ps -a
 - npm install newman --global;
 install:
@@ -24,8 +26,4 @@ script:
 - curl http://localhost:5635/health
 - cd $TRAVIS_BUILD_DIR/src/test/resources && newman run AssetAPI.postman_collection.json -e AeselTest.postman_environment.json
 after_failure:
-- docker logs --tail 50 document-db
-- docker logs --tail 50 graph-db
-- docker logs --tail 150 crazyivan
-- docker logs --tail 150 clyman
 - cd $TRAVIS_BUILD_DIR && cat logs/avc.log | grep ERROR

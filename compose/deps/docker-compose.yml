@@ -1,0 +1,72 @@
+version: '2.1'
+
+services:
+  registry:
+    image: consul
+    container_name: registry
+    ports:
+      - "8500:8500"
+    command: agent --dev -ui -client=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8500/v1/status/leader"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  graphdb:
+    image: neo4j
+    container_name: graph-db
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ${HOME}/neo4j/data:/data
+    environment:
+      - NEO4J_AUTH=none
+  documentdb:
+    image: mongo
+    container_name: document-db
+    ports:
+      - "27017:27017"
+  crazyivan:
+    image: aostreetart/crazyivan:v2
+    container_name: crazyivan
+    ports:
+      - "8766:8766"
+      - "8764:8764/udp"
+    environment:
+      - IVAN_PROD_NEO4J=neo4j://graph-db:7687
+      - IVAN_PROD_HTTP_HOST=crazyivan
+    command: consul=http://registry:8500
+    depends_on:
+      registry:
+        condition: service_healthy
+  clyman:
+    image: aostreetart/clyman:v2
+    container_name: clyman
+    ports:
+      - "8768:8768"
+      - "8762:8762/udp"
+    environment:
+      - CLYMAN_PROD_MONGO=mongodb://document-db:27017
+      - CLYMAN_PROD_HTTP_HOST=clyman
+      - CLYMAN_PROD_EVENT_DESTINATION_HOST=${NETWORK_INTERFACE_ADDRESS}
+      - CLYMAN_PROD_EVENT_DESTINATION_PORT=8764
+    command: consul=http://registry:8500
+    depends_on:
+      registry:
+        condition: service_healthy
+  adrestia:
+    image: aostreetart/adrestia:v2
+    container_name: adrestia
+    ports:
+      - "8080:8080"
+    depends_on:
+      registry:
+        condition: service_healthy
+    environment:
+      - SERVER_MONGO_HOST=document-db
+      - SERVICE_STATIC_CLUSTER=test
+      - SERVICE_IVAN_HOST=crazyivan
+      - SERVICE_CLYMAN_HOST=clyman
+      - SPRING_CLOUD_CONSUL_HOST=registry
+      - SPRING_CLOUD_CONSUL_DISCOVERY_PREFERIPADDRESS=true
