@@ -25,6 +25,8 @@ script:
 - sleep 45
 - curl http://localhost:5635/health
 - cd $TRAVIS_BUILD_DIR/src/test/resources && newman run AssetAPI.postman_collection.json -e AeselTest.postman_environment.json
+- docker stop $(docker ps -aq)
+- docker rm $(docker ps -aq)
 after_success:
   - docker build -t aostreetart/kelona:latest
   - scripts/linux/push_docker.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH
