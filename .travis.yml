@@ -13,7 +13,7 @@ before_install:
 - docker network create dvs
 - export NETWORK_INTERFACE_NAME=$(route | grep '^default' | grep -o '[^ ]*$')
 - export NETWORK_INTERFACE_ADDRESS=$(ip addr show $NETWORK_INTERFACE_NAME | grep -Po 'inet \K[\d.]+')
-- docker-compose -f compose/deps/docker-compose.yml up
+- docker-compose -f compose/deps/docker-compose.yml up &
 - sleep 480
 - docker ps -a
 - npm install newman --global;
