@@ -1,0 +1,32 @@
+version: '2.1'
+
+services:
+  registry:
+    image: consul
+    container_name: registry
+    ports:
+      - "8500:8500"
+    command: agent --dev -ui -client=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8500/v1/status/leader"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  mongo:
+    image: mongo
+    container_name: document-db
+    restart: always
+    ports:
+      - "27017:27017"
+  kelona:
+    image: aostreetart/kelona:latest
+    container_name: kelona
+    ports:
+      - "5635:5635"
+    depends_on:
+      registry:
+        condition: service_healthy
+    environment:
+      - SERVER_MONGO_HOST=document-db
+      - SPRING_CLOUD_CONSUL_HOST=registry
+      - SPRING_CLOUD_CONSUL_DISCOVERY_PREFERIPADDRESS=true
