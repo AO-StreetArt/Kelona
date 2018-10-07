@@ -11,14 +11,18 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.retry.annotation.EnableRetry;
 
 @EnableDiscoveryClient
 @Configuration
+@EnableRetry
+@EnableAutoConfiguration
 @SpringBootApplication(exclude = {SolrAutoConfiguration.class})
 public class AvcApplication extends AbstractMongoConfiguration {
 
