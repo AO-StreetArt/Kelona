@@ -505,7 +505,10 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
 					"raw": "{{AESEL_URL}}/v1/asset/{{OLD_ASSET_ID}}",
 					"host": [
