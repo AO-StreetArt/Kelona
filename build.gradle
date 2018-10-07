@@ -61,6 +61,9 @@ dependencies {
   compile('org.springframework.retry:spring-retry')
   compile('org.springframework.boot:spring-boot-starter-aop:2.0.5.RELEASE')
   compile('org.springframework.vault:spring-vault-core:2.1.0.RELEASE')
+  compile('org.springframework.security:spring-security-web:5.1.0.RELEASE')
+  compile('org.springframework.security:spring-security-config:5.1.0.RELEASE')
+  compile('org.springframework.security:spring-security-core:5.1.0.RELEASE')
 	runtime('org.springframework.boot:spring-boot-devtools')
   errorprone 'com.google.errorprone:error_prone_core:2.2.0'
 	compileOnly('org.projectlombok:lombok')
