@@ -105,12 +105,13 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     if (httpAuthActive) {
-      http.csrf().disable()
-          .authorizeRequests()
+      http.authorizeRequests()
           .and().httpBasic().realmName(REALM).authenticationEntryPoint(getBasicAuthEntryPoint())
           .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     } else {
-      http.authorizeRequests().anyRequest().permitAll();
+      // Security Disabled
+      http.csrf().disable()
+          .authorizeRequests().anyRequest().permitAll();
     }
   }
 
