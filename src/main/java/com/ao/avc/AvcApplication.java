@@ -97,8 +97,8 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
         httpCreds.setUsername(httpUsername);
         httpCreds.setPassword(httpPassword);
       }
+      auth.inMemoryAuthentication().withUser(httpUsername).password(httpPassword).roles("USER");
     }
-    auth.inMemoryAuthentication().withUser(httpUsername).password(httpPassword).roles("USER");
   }
 
   // Set up security filters
@@ -121,7 +121,9 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
   // Allow Pre-flight [OPTIONS] request from browser
   @Override
   public void configure(WebSecurity web) throws Exception {
+    if (httpAuthActive) {
       web.ignoring().antMatchers(HttpMethod.OPTIONS, "/**");
+    }
   }
 
   // ---------- Main App -------------
