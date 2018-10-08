@@ -109,6 +109,8 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
           .authorizeRequests()
           .and().httpBasic().realmName(REALM).authenticationEntryPoint(getBasicAuthEntryPoint())
           .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    } else {
+      http.authorizeRequests().anyRequest().permitAll();
     }
   }
 
