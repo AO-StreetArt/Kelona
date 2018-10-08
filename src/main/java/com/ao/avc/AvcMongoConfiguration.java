@@ -43,9 +43,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.HttpMethod;
-import org.springframework.vault.config.EnvironmentVaultConfiguration;
-import org.springframework.vault.core.VaultOperations;
-import org.springframework.vault.support.VaultResponseSupport;
 
 @Configuration
 public class AvcMongoConfiguration extends AbstractMongoConfiguration {
@@ -90,34 +87,12 @@ public class AvcMongoConfiguration extends AbstractMongoConfiguration {
   @Value("${ssl.keyStore.password:}")
   private String mongoKeyStorePw;
 
-  // Is Vault Authentication Loading Active
-  // If true, we'll load Mongo Auth info from Vault prior to connecting
-  @Value("${vault.active:false}")
-  private boolean vaultActive;
-
-  // Vault Connection
-  @Autowired
-  private VaultOperations operations;
-
   // -------- Mongo Configuration -----------
 
   // Connect to Mongo, potentially authenticated
   @Override
   public MongoClient mongoClient() {
     // Build Mongo Connection Ops
-    // See if we need to pull SSL Certificate credentials from Vault
-    if (vaultActive) {
-      PasswordCredentials sslKeyCreds;
-      PasswordCredentials sslTrustCreds;
-      VaultResponseSupport<PasswordCredentials> keyResponse =
-          operations.read("AVC_SSL_KEY_CREDENTIALS", PasswordCredentials.class);
-      sslKeyCreds = keyResponse.getData();
-      mongoKeyStorePw = sslKeyCreds.getPassword();
-      VaultResponseSupport<PasswordCredentials> trustResponse =
-          operations.read("AVC_SSL_TRUST_CREDENTIALS", PasswordCredentials.class);
-      sslTrustCreds = trustResponse.getData();
-      mongoTrustStorePw = sslTrustCreds.getPassword();
-    }
 
     // Build out the Mongo SSL Options
     MongoClientOptions options;
@@ -149,19 +124,11 @@ public class AvcMongoConfiguration extends AbstractMongoConfiguration {
 
     // Pull authentication information
     if (mongoAuthActive) {
-      BasicCredentials mongoCreds;
-      if (vaultActive) {
-        VaultResponseSupport<BasicCredentials> response =
-            operations.read("AVC_MONGO_CREDENTIALS", BasicCredentials.class);
-        mongoCreds = response.getData();
-      } else {
-        mongoCreds = new BasicCredentials();
-        mongoCreds.setUsername(mongoUsername);
-        mongoCreds.setPassword(mongoPassword);
-      }
-
       List<MongoCredential> mongoCredsList = new ArrayList<MongoCredential>();
-      mongoCredsList.add(MongoCredential.createCredential(mongoCreds.getUsername(), "_avc", mongoCreds.getPassword().toCharArray()));
+      mongoCredsList.add(MongoCredential.createCredential(
+          mongoUsername,
+          "_avc",
+          mongoPassword.toCharArray()));
 
       // Return a DB Client with Authentication
       return new MongoClient(mongoAdressList, mongoCredsList, options);

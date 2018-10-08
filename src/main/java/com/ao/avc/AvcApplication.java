@@ -44,16 +44,13 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.vault.config.EnvironmentVaultConfiguration;
-import org.springframework.vault.core.VaultOperations;
-import org.springframework.vault.support.VaultResponseSupport;
 
 @Configuration
 @EnableAutoConfiguration
 @EnableDiscoveryClient
 @EnableRetry
 @EnableWebSecurity
-@Import({EnvironmentVaultConfiguration.class, AvcMongoConfiguration.class})
+@Import(AvcMongoConfiguration.class)
 @SpringBootApplication(exclude = {SolrAutoConfiguration.class})
 public class AvcApplication extends WebSecurityConfigurerAdapter {
 
@@ -69,15 +66,6 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
   @Value("${server.auth.password:kelona}")
   private String httpPassword;
 
-  // Is Vault Authentication Loading Active
-  // If true, we'll load Mongo Auth info from Vault prior to connecting
-  @Value("${vault.active:false}")
-  private boolean vaultActive;
-
-  // Vault Connection
-  @Autowired
-  private VaultOperations operations;
-
   // -------- Security Configuration ---------
 
   // Security Realm
@@ -87,16 +75,6 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
   @Autowired
   public void configureGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception {
     if (httpAuthActive) {
-      BasicCredentials httpCreds;
-      if (vaultActive) {
-        VaultResponseSupport<BasicCredentials> response =
-            operations.read("AVC_HTTP_CREDENTIALS", BasicCredentials.class);
-        httpCreds = response.getData();
-      } else {
-        httpCreds = new BasicCredentials();
-        httpCreds.setUsername(httpUsername);
-        httpCreds.setPassword(httpPassword);
-      }
       auth.inMemoryAuthentication().withUser(httpUsername).password(httpPassword).roles("USER");
     }
   }
@@ -105,7 +83,8 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     if (httpAuthActive) {
-      http.authorizeRequests()
+      http.csrf().disable()
+          .authorizeRequests()
           .and().httpBasic().realmName(REALM).authenticationEntryPoint(getBasicAuthEntryPoint())
           .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     } else {
