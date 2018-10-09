@@ -38,12 +38,14 @@ import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
 
 @Configuration
 @EnableAutoConfiguration
@@ -71,11 +73,15 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
   // Security Realm
   private static String REALM="AVC_REALM";
 
+  BCryptPasswordEncoder passEncoder = new BCryptPasswordEncoder();
+
   // Configure Basic Auth
   @Autowired
   public void configureGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception {
     if (httpAuthActive) {
-      auth.inMemoryAuthentication().withUser(httpUsername).password(httpPassword).roles("USER");
+      //User.withDefaultPasswordEncoder().username("user").password("user").roles("USER").build();
+      auth.inMemoryAuthentication().passwordEncoder(passEncoder)
+          .withUser(httpUsername).password(passEncoder.encode(httpPassword)).roles("USER");
     }
   }
 
@@ -84,7 +90,7 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     if (httpAuthActive) {
       http.csrf().disable()
-          .authorizeRequests()
+          .authorizeRequests().anyRequest().authenticated()
           .and().httpBasic().realmName(REALM).authenticationEntryPoint(getBasicAuthEntryPoint())
           .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     } else {

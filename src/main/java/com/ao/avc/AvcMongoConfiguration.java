@@ -15,8 +15,6 @@ limitations under the License.
 package com.ao.avc;
 
 import com.ao.avc.auth.AvcBasicAuthEntryPoint;
-import com.ao.avc.auth.BasicCredentials;
-import com.ao.avc.auth.PasswordCredentials;
 
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
