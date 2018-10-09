@@ -17,8 +17,6 @@ package com.ao.avc;
 import com.ao.avc.AvcMongoConfiguration;
 
 import com.ao.avc.auth.AvcBasicAuthEntryPoint;
-import com.ao.avc.auth.BasicCredentials;
-import com.ao.avc.auth.PasswordCredentials;
 
 import java.util.ArrayList;
 import java.util.List;
