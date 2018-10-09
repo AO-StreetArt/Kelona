@@ -1,14 +1,22 @@
+/*
+Apache2 License Notice
+Copyright 2018 Alex Barry
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package com.ao.avc;
 
-import com.ao.avc.auth.BasicCredentials;
+import com.ao.avc.AvcMongoConfiguration;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.gridfs.GridFSBucket;
-import com.mongodb.client.gridfs.GridFSBuckets;
+import com.ao.avc.auth.AvcBasicAuthEntryPoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,106 +24,97 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.http.HttpMethod;
 import org.springframework.retry.annotation.EnableRetry;
-import org.springframework.vault.config.EnvironmentVaultConfiguration;
-import org.springframework.vault.core.VaultOperations;
-import org.springframework.vault.support.VaultResponseSupport;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
 
-@EnableDiscoveryClient
 @Configuration
-@EnableRetry
 @EnableAutoConfiguration
-@Import(EnvironmentVaultConfiguration.class)
+@EnableDiscoveryClient
+@EnableRetry
+@EnableWebSecurity
+@Import(AvcMongoConfiguration.class)
 @SpringBootApplication(exclude = {SolrAutoConfiguration.class})
-public class AvcApplication extends AbstractMongoConfiguration {
+public class AvcApplication extends WebSecurityConfigurerAdapter {
 
-  // Hostname of Mongo Connection
-  @Value("${server.mongo.hosts:localhost}")
-  private String mongoHosts;
+  // Is Authentication required for accessing our HTTP Server
+  @Value("${server.auth.active:false}")
+  private boolean httpAuthActive;
 
-  // Port of Mongo Connection
-  @Value("${server.mongo.port:27017}")
-  private int mongoPort;
+  // Username for the HTTP Server Authentication
+  @Value("${server.auth.username:kelona}")
+  private String httpUsername;
 
-  // Is Authentication Active in the Mongo Connection
-  @Value("${server.mongo.auth.active:false}")
-  private boolean mongoAuthActive;
+  // Password for the HTTP Server Authentication
+  @Value("${server.auth.password:kelona}")
+  private String httpPassword;
 
-  // Is Vault Authentication Loading Active
-  // If true, we'll load Mongo Auth info from Vault prior to connecting
-  @Value("${server.mongo.auth.vault.active:false}")
-  private boolean mongoVaultAuthActive;
+  // -------- Security Configuration ---------
 
-  // Username of the Mongo Connection
-  @Value("${server.mongo.auth.username:mongo}")
-  private String mongoUsername;
+  // Security Realm
+  private static String REALM="AVC_REALM";
 
-  // Password of the Mongo Connection
-  @Value("${server.mongo.auth.password:mongo}")
-  private String mongoPassword;
+  BCryptPasswordEncoder passEncoder = new BCryptPasswordEncoder();
 
+  // Configure Basic Auth
   @Autowired
-  private VaultOperations operations;
+  public void configureGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception {
+    if (httpAuthActive) {
+      //User.withDefaultPasswordEncoder().username("user").password("user").roles("USER").build();
+      auth.inMemoryAuthentication().passwordEncoder(passEncoder)
+          .withUser(httpUsername).password(passEncoder.encode(httpPassword)).roles("USER");
+    }
+  }
 
+  // Set up security filters
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+    if (httpAuthActive) {
+      http.csrf().disable()
+          .authorizeRequests().anyRequest().authenticated()
+          .and().httpBasic().realmName(REALM).authenticationEntryPoint(getBasicAuthEntryPoint())
+          .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    } else {
+      // Security Disabled
+      http.csrf().disable()
+          .authorizeRequests().anyRequest().permitAll();
+    }
+  }
+
+  // Set entrypoint for Authentication Failures
   @Bean
-  public GridFsTemplate gridFsTemplate() throws Exception {
-    return new GridFsTemplate(mongoDbFactory(), mappingMongoConverter());
+  public AvcBasicAuthEntryPoint getBasicAuthEntryPoint(){
+      return new AvcBasicAuthEntryPoint();
   }
 
+  // Allow Pre-flight [OPTIONS] request from browser
   @Override
-  public MongoClient mongoClient() {
-    // Setup the list of Mongo Addresses
-    List<ServerAddress> mongoAdressList = new ArrayList<ServerAddress>();
-    String[] addressArray = mongoHosts.split(",");
-    for (String address : addressArray) {
-      mongoAdressList.add(new ServerAddress(address, mongoPort));
+  public void configure(WebSecurity web) throws Exception {
+    if (httpAuthActive) {
+      web.ignoring().antMatchers(HttpMethod.OPTIONS, "/**");
     }
-
-    // Pull authentication information
-    if (mongoAuthActive) {
-      BasicCredentials mongoCreds;
-      if (mongoVaultAuthActive) {
-        VaultResponseSupport<BasicCredentials> response =
-            operations.read("AVC_MONGO_CREDENTIALS", BasicCredentials.class);
-        mongoCreds = response.getData();
-      } else {
-        mongoCreds = new BasicCredentials();
-        mongoCreds.setUsername(mongoUsername);
-        mongoCreds.setPassword(mongoPassword);
-      }
-
-      List<MongoCredential> mongoCredsList = new ArrayList<MongoCredential>();
-      mongoCredsList.add(MongoCredential.createCredential(mongoCreds.getUsername(), "_avc", mongoCreds.getPassword().toCharArray()));
-
-      // Return a DB Client with Authentication
-      return new MongoClient(mongoAdressList, mongoCredsList);
-    }
-
-    // Return a DB Client without Authentication
-    return new MongoClient(mongoAdressList);
   }
 
-  @Override
-  protected String getDatabaseName() {
-    return "_avc";
-  }
+  // ---------- Main App -------------
 
-  @Bean public GridFSBucket getGridFSBuckets() {
-    MongoDatabase db = mongoDbFactory().getDb();
-    return GridFSBuckets.create(db);
-  }
-
+  // Run the main application
   public static void main(String[] args) {
     SpringApplication.run(AvcApplication.class, args);
   }
