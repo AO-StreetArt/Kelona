@@ -17,17 +17,27 @@ limitations under the License.
 
 package com.ao.avc.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 @Data
 @NoArgsConstructor
-public class AssetMetadata {
+@Document(collection = "assetrelationship")
+public class AssetRelationship {
 
-  private String key;
-  private String contentType;
-  private String fileType;
-  private String assetType;
-  private String createdTimestamp;
+  @Id
+  public String id;
+  // Id of the Asset referred to by the relationship
+  public String assetId;
+  // The type of relationship (ie. Scene, Object, Thumbnail, etc.)
+  public String relationshipType;
+  // The ID of the related data element
+  public String relatedId;
 
 }

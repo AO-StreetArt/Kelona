@@ -18,9 +18,9 @@ import com.ao.avc.auth.AvcBasicAuthEntryPoint;
 
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
@@ -108,9 +108,9 @@ public class AvcMongoConfiguration extends AbstractMongoConfiguration {
       if (!(mongoKeyStorePw.isEmpty())) {
         System.setProperty("javax.net.ssl.keyStorePassword", mongoKeyStorePw);
       }
-      options=builder.sslEnabled(true).build();
+      options = builder.sslEnabled(true).build();
     } else {
-      options=builder.build();
+      options = builder.build();
     }
 
     // Setup the list of Mongo Addresses

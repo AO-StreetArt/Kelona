@@ -5,21 +5,22 @@ Asset API
 
 An Asset, at it's core, is simply a file.  The general expectation, however, is
 that this file is quite large, and may be in a binary format.  An Asset has some
-associated metadata, but at it's core it is nothing but a file.
+associated metadata.
 
 Asset Creation
 ~~~~~~~~~~~~~~
 
 .. http:post:: /v1/asset/
 
-   Create a new asset.
+   Create a new asset from the File Data in the body of the request.  If the
+   'related-id' and 'related-type' are also populated, then an Asset Relationship
+   is created as well.
 
    :query string content-type: Optional.  The content type of the asset (ie. application/json).
    :query string file-type: Optional.  The file type of the asset (ie. json).
-   :query string asset-type: Optional.  Valid options are 'standard' (for normal assets), and 'thumbnail' for thumbnail assets.
-   :query string scene: Optional.  Used to associate a thumbnail to a scene.
-   :query string object: Optional.  Used to associate a thumbnail to an object.
-   :query string parent: Optional.  Used to associate a thumbnail to an asset.
+   :query string related-id: Optional.  Must appear with 'related-type'.  Used to create a relationship to the specified object.
+   :query string related-type: Optional.  Must appear with 'related-id'.  Used the create a relationship of the specified type.
+   :query string asset-type: Optional.  Populated into the query-able Asset Metadata.
    :reqheader Content-Type: multipart/*
    :statuscode 200: Success
 
@@ -31,14 +32,12 @@ Asset Update
 .. http:post:: /v1/asset/{asset_key}
 
    Update an existing Asset.  This returns a new key for the asset, and adds
-   an entry to the associated Asset History.
+   an entry to the associated Asset History.  This will also update all relationships
+   which were associated to the old Asset, and associate them to the new Asset.
 
    :query string content-type: Optional.  The content type of the asset (ie. application/json).
    :query string file-type: Optional.  The file type of the asset (ie. json).
-   :query string asset-type: Optional.  Valid options are 'standard' (for normal assets), and 'thumbnail' for thumbnail assets.
-   :query string scene: Optional.  Used to associate a thumbnail to a scene.
-   :query string object: Optional.  Used to associate a thumbnail to an object.
-   :query string parent: Optional.  Used to associate a thumbnail to an asset.
+   :query string asset-type: Optional.  Populated into the query-able Asset Metadata.
    :reqheader Content-Type: multipart/*
    :statuscode 200: Success
 
@@ -65,9 +64,6 @@ Asset Metadata Query
    :query string content-type: Optional.  The content type of the asset (ie. application/json).
    :query string file-type: Optional.  The file type of the asset (ie. json).
    :query string asset-type: Optional.  Valid options are 'standard' (for normal assets), and 'thumbnail' for thumbnail assets.
-   :query string scene: Optional.  Used to associate a thumbnail to a scene.
-   :query string object: Optional.  Used to associate a thumbnail to an object.
-   :query string parent: Optional.  Used to associate a thumbnail to an asset.
    :statuscode 200: Success
 
 .. include:: _examples/asset/asset_query.rst
