@@ -42,7 +42,8 @@
 					"formdata": [
 						{
 							"key": "file",
-							"type": "file"
+							"type": "file",
+              "src": "testupload.txt"
 						}
 					]
 				},
@@ -189,7 +190,8 @@
 					"formdata": [
 						{
 							"key": "file",
-							"type": "file"
+							"type": "file",
+              "src": "testupload2.txt"
 						}
 					]
 				},
@@ -291,7 +293,8 @@
 					"formdata": [
 						{
 							"key": "file",
-							"type": "file"
+							"type": "file",
+              "src": "testupload3.txt"
 						}
 					]
 				},
