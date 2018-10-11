@@ -18,8 +18,10 @@ limitations under the License.
 package com.ao.avc.controller;
 
 import com.ao.avc.dao.AssetHistoryRepository;
+import com.ao.avc.dao.AssetRelationshipRepository;
 import com.ao.avc.model.AssetHistory;
 import com.ao.avc.model.AssetMetadata;
+import com.ao.avc.model.AssetRelationship;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -54,7 +56,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.vault.core.VaultOperations;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,6 +82,10 @@ public class AssetController {
   @Autowired
   AssetHistoryRepository assetHistories;
 
+  // Spring Data Mongo Repository allowing access to standard Mongo operations
+  @Autowired
+  AssetRelationshipRepository assetRelationships;
+
   @Autowired
   GridFSBucket gridFsBucket;
 
@@ -102,8 +107,7 @@ public class AssetController {
     return newId;
   }
 
-  private void updateAssetHistory(String sceneName, String objectName,
-      String assetId, String oldAssetId) {
+  private void updateAssetHistory(String assetId, String oldAssetId) {
     List<AssetHistory> existingHistoryList = assetHistories.findByAsset(oldAssetId);
     // If we have an existing history, update it.
     if (existingHistoryList.size() > 0) {
@@ -117,16 +121,13 @@ public class AssetController {
       historyList.add(oldAssetId);
       historyList.add(0, assetId);
       AssetHistory newHistory = new AssetHistory();
-      newHistory.setScene(sceneName);
-      newHistory.setObject(objectName);
       newHistory.setAsset(assetId);
       newHistory.setAssetIds(historyList);
       assetHistories.save(newHistory);
     }
   }
 
-  private ResponseEntity<Resource> getAsset(String id, boolean isThumbnail,
-      boolean isSceneThumbnail) throws MalformedURLException {
+  private ResponseEntity<Resource> getAsset(String id) throws MalformedURLException {
     logger.info("Responding to Asset Get Request");
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "text/plain");
@@ -134,16 +135,7 @@ public class AssetController {
     GridFSFile gridFsdbFile;
     try {
       Query query = new Query();
-      if (isThumbnail) {
-        query.addCriteria(Criteria.where("metadata.asset-type").is("thumbnail"));
-        if (isSceneThumbnail) {
-          query.addCriteria(Criteria.where("metadata.scene").is(id));
-        } else {
-          query.addCriteria(Criteria.where("metadata.parent").is(id));
-        }
-      } else {
-        query.addCriteria(Criteria.where("_id").is(id));
-      }
+      query.addCriteria(Criteria.where("_id").is(id));
       gridFsdbFile = gridFsTemplate.findOne(query);
     } catch (Exception e) {
       logger.error("Error Retrieving Asset from Mongo: ", e);
@@ -171,95 +163,13 @@ public class AssetController {
   }
 
   /**
-  * Find Assets by metadata.
-  */
-  @GetMapping("/v1/asset")
-  @ResponseBody
-  public ResponseEntity<List<AssetMetadata>> findAssets(
-      @RequestParam(value = "scene", defaultValue = "") String sceneId,
-      @RequestParam(value = "object", defaultValue = "") String objectId,
-      @RequestParam(value = "parent", defaultValue = "") String parentId,
-      @RequestParam(value = "content-type", defaultValue = "") String contentType,
-      @RequestParam(value = "file-type", defaultValue = "") String fileType,
-      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType)
-      throws MalformedURLException, IOException {
-    logger.info("Responding to Asset Find Request");
-    HttpHeaders responseHeaders = new HttpHeaders();
-    // Load the file from Mongo
-    GridFSFindIterable gridFsdbFiles;
-    try {
-      Query query = new Query();
-      if (!(sceneId.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.scene").is(sceneId));
-      } else if (!(objectId.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.object").is(objectId));
-      } else if (!(parentId.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.parent").is(parentId));
-      } else if (!(contentType.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.content-type").is(contentType));
-      } else if (!(fileType.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.file-type").is(fileType));
-      } else if (!(assetType.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.asset-type").is(assetType));
-      }
-      gridFsdbFiles = gridFsTemplate.find(query);
-    } catch (Exception e) {
-      logger.error("Error Retrieving Asset from Mongo: ", e);
-      return new ResponseEntity<List<AssetMetadata>>(
-          new ArrayList<AssetMetadata>(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-    if (gridFsdbFiles == null) {
-      logger.error("Null Asset Retrieved from Mongo");
-      return new ResponseEntity<List<AssetMetadata>>(
-          new ArrayList<AssetMetadata>(), responseHeaders, HttpStatus.NO_CONTENT);
-    }
-    List<AssetMetadata> returnList = new ArrayList<AssetMetadata>();
-    for (GridFSFile mongoFile : gridFsdbFiles) {
-      Document metaDoc = mongoFile.getMetadata();
-      AssetMetadata returnDoc = new AssetMetadata();
-      logger.info(metaDoc.toString());
-      returnDoc.setKey(mongoFile.getId().toString());
-      returnDoc.setScene(metaDoc.getString("scene"));
-      returnDoc.setObject(metaDoc.getString("object"));
-      returnDoc.setParent(metaDoc.getString("parent"));
-      returnDoc.setContentType(metaDoc.getString("content-type"));
-      returnDoc.setFileType(metaDoc.getString("file-type"));
-      returnDoc.setAssetType(metaDoc.getString("asset-type"));
-      returnDoc.setCreatedTimestamp(metaDoc.getString("created-dttm"));
-      returnList.add(returnDoc);
-    }
-    responseHeaders.set("Content-Type", "application/json");
-    return new ResponseEntity<List<AssetMetadata>>(returnList, responseHeaders, HttpStatus.OK);
-  }
-
-  /**
   * Retrieve an Asset.
   */
   @GetMapping("/v1/asset/{key}")
   @ResponseBody
   public ResponseEntity<Resource> serveFile(@PathVariable String key)
       throws MalformedURLException, IOException {
-    return getAsset(key, false, false);
-  }
-
-  /**
-  * Retrieve a Thumbnail by Parent ID.
-  */
-  @GetMapping("/v1/asset-thumbnail/{parent}")
-  @ResponseBody
-  public ResponseEntity<Resource> serveThumbnail(@PathVariable String parent)
-      throws MalformedURLException, IOException {
-    return getAsset(parent, true, false);
-  }
-
-  /**
-  * Retrieve a Thumbnail by Scene ID.
-  */
-  @GetMapping("/v1/scene-thumbnail/{scene}")
-  @ResponseBody
-  public ResponseEntity<Resource> serveSceneThumbnail(@PathVariable String scene)
-      throws MalformedURLException, IOException {
-    return getAsset(scene, true, true);
+    return getAsset(key);
   }
 
   /**
@@ -270,17 +180,15 @@ public class AssetController {
       headers = ("content-type=multipart/*"),
       method = RequestMethod.POST)
   public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file,
-      @RequestParam(value = "scene", defaultValue = "") String sceneId,
-      @RequestParam(value = "object", defaultValue = "") String objectId,
-      @RequestParam(value = "parent", defaultValue = "") String parentId,
+      @RequestParam(value = "related-id", defaultValue = "") String relatedId,
+      @RequestParam(value = "related-type", defaultValue = "") String relatedType,
       @RequestParam(value = "content-type", defaultValue = "text/plain") String contentType,
       @RequestParam(value = "file-type", defaultValue = "txt") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "standard") String assetType) {
     logger.info("Responding to Asset Save Request");
+
+    // Persist the file
     DBObject metaData = new BasicDBObject();
-    metaData.put("scene", sceneId);
-    metaData.put("object", objectId);
-    metaData.put("parent", parentId);
     metaData.put("content-type", contentType);
     metaData.put("file-type", fileType);
     metaData.put("asset-type", assetType);
@@ -292,7 +200,16 @@ public class AssetController {
       return new ResponseEntity<String>("Failure", responseHeaders,
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    // TO-DO: Add Asset to scene and/or object in CLyman and Crazy Ivan
+
+    // Persist a relationship, if provided
+    if (!(relatedId.isEmpty()) && !(relatedType.isEmpty()) && !(newId.isEmpty())) {
+      AssetRelationship newRelation = new AssetRelationship();
+      newRelation.setAssetId(newId);
+      newRelation.setRelationshipType(relatedType);
+      newRelation.setRelatedId(relatedId);
+      assetRelationships.save(newRelation);
+    }
+
     HttpStatus returnCode = HttpStatus.OK;
     return new ResponseEntity<String>(newId, responseHeaders, returnCode);
   }
@@ -306,17 +223,11 @@ public class AssetController {
       method = RequestMethod.POST)
   public ResponseEntity<String> handleFileUpdate(@PathVariable String key,
       @RequestParam("file") MultipartFile file,
-      @RequestParam(value = "scene", defaultValue = "") String sceneId,
-      @RequestParam(value = "object", defaultValue = "") String objectId,
-      @RequestParam(value = "parent", defaultValue = "") String parentId,
       @RequestParam(value = "content-type", defaultValue = "text/plain") String contentType,
       @RequestParam(value = "file-type", defaultValue = "txt") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "standard") String assetType) {
-    // TO-DO: Only accept updates for non-thumbnail assets
+    // Persist New Asset
     DBObject metaData = new BasicDBObject();
-    metaData.put("scene", sceneId);
-    metaData.put("object", objectId);
-    metaData.put("parent", parentId);
     metaData.put("content-type", contentType);
     metaData.put("file-type", fileType);
     metaData.put("asset-type", assetType);
@@ -328,8 +239,19 @@ public class AssetController {
       return new ResponseEntity<String>("Failure", responseHeaders,
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    // TO-DO: Update Scene and/or Object in CLyman/CrazyIvan
-    updateAssetHistory(sceneId, objectId, newId, key);
+
+    // Update Asset Relationships
+    List<AssetRelationship> existingRelationships =
+        assetRelationships.findByAssetId(key);
+    for (AssetRelationship relation : existingRelationships) {
+      relation.setAssetId(newId);
+      assetRelationships.save(relation);
+    }
+
+    // Update Asset Histories
+    updateAssetHistory(newId, key);
+
+    // Response setup
     HttpStatus returnCode = HttpStatus.OK;
     return new ResponseEntity<String>(newId, responseHeaders, returnCode);
   }
@@ -351,6 +273,15 @@ public class AssetController {
       return new ResponseEntity<String>("Failure", responseHeaders,
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    // Remove Asset Relationships
+    List<AssetRelationship> existingRelationships =
+        assetRelationships.findByAssetId(key);
+    for (AssetRelationship relation : existingRelationships) {
+      assetRelationships.delete(relation);
+    }
+
+    // Send response
     return new ResponseEntity<String>("Success", responseHeaders, HttpStatus.OK);
   }
 

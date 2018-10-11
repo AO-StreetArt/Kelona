@@ -31,8 +31,6 @@ public class AssetHistory {
 
   @Id
   public String id;
-  public String scene;
-  public String object;
   public String asset;
   public List<String> assetIds;
 

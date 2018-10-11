@@ -27,8 +27,8 @@ Features
 --------
 
 - Storage of large-scale Assets (files), and associated metadata.
+- Storage of relationships between assets and other data elements.
 - Provide a History of updates on each Asset.
-- Integrate with other Aesel components to allow Asset connections to be kept up-to-date.
 
 Stuck and need help?  Have general questions about the application?  We encourage you to publish your question
 on `Stack Overflow <https://stackoverflow.com>`__.  We regularly monitor for the tag 'aesel' in questions.

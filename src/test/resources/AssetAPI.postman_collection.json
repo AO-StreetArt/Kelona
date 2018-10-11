@@ -1,7 +1,7 @@
 {
 	"info": {
-		"name": "AssetAPI",
-		"_postman_id": "b2184c8c-f2b8-ba00-28fd-2d78e1e548c8",
+		"_postman_id": "6ae6701a-cc87-4fd5-8232-80fe919ef24a",
+		"name": "Avc",
 		"description": "Run Basic Tests on the Aesel Asset API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -12,7 +12,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "30c16872-3e8d-407d-b85d-fdf1ad924cc4",
+						"id": "873c069e-0e9d-4d51-84ac-66209bb22777",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Response time is less than 5000ms\", function () {",
@@ -43,61 +43,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "testupload.txt"
-						}
-					]
-				},
-				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset",
-					"host": [
-						"{{AESEL_URL}}"
-					],
-					"path": [
-						"v1",
-						"asset"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Upload Test File2",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "27e8aa61-34e6-4234-adaa-5da19b4f85b5",
-						"type": "text/javascript",
-						"exec": [
-							"pm.test(\"Response time is less than 5000ms\", function () {",
-							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
-							"});",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.environment.unset(\"ASSET_ID2\");",
-							"",
-							"pm.environment.set(\"ASSET_ID2\", pm.response.text());",
-							""
-						]
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"type": "file",
-							"src": "testupload2.txt"
+              "src": "testupload.txt"
 						}
 					]
 				},
@@ -156,12 +102,12 @@
 			"response": []
 		},
 		{
-			"name": "Get Test File2",
+			"name": "Query Assets",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "ddef8b6f-f259-45cf-a66e-4a1af69ce1f7",
+						"id": "e0caaf76-3870-4e94-8d37-345900d5de62",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Response time is less than 5000ms\", function () {",
@@ -170,7 +116,14 @@
 							"",
 							"pm.test(\"Status code is 200\", function () {",
 							"    pm.response.to.have.status(200);",
-							"});"
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.length).to.not.eql(0);",
+							"});",
+							""
 						]
 					}
 				}
@@ -178,80 +131,24 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
-				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset/{{ASSET_ID2}}",
-					"host": [
-						"{{AESEL_URL}}"
-					],
-					"path": [
-						"v1",
-						"asset",
-						"{{ASSET_ID2}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Update Test File",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "22915957-5168-40db-bb6d-a96ca545ae15",
-						"type": "text/javascript",
-						"exec": [
-							"pm.test(\"Response time is less than 5000ms\", function () {",
-							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
-							"});",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.environment.unset(\"ASSET_ID\");",
-							"",
-							"pm.environment.set(\"ASSET_ID\", pm.response.text());",
-							"",
-							"pm.environment.unset(\"OLD_ASSET_ID\");",
-							"",
-							"pm.environment.set(\"OLD_ASSET_ID\", pm.response.text());"
-						]
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
 				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"type": "file",
-							"src": "testupload3.txt"
-						},
-						{
-							"key": "scene",
-							"value": "assetScene",
-							"description": "",
-							"type": "text"
-						}
-					]
+					"mode": "raw",
+					"raw": ""
 				},
 				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset/{{ASSET_ID}}",
+					"raw": "{{AESEL_URL}}/v1/asset?content-type=text/plain",
 					"host": [
 						"{{AESEL_URL}}"
 					],
 					"path": [
 						"v1",
-						"asset",
-						"{{ASSET_ID}}"
+						"asset"
+					],
+					"query": [
+						{
+							"key": "content-type",
+							"value": "text/plain"
+						}
 					]
 				}
 			},
@@ -263,7 +160,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "51923eda-ab9c-4fb0-b57b-5ce905a02927",
+						"id": "e645cbcd-efbc-4cbb-9de0-0a3b5956749f",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Response time is less than 5000ms\", function () {",
@@ -277,10 +174,7 @@
 							"pm.environment.unset(\"ASSET_ID2\");",
 							"",
 							"pm.environment.set(\"ASSET_ID2\", pm.response.text());",
-							"",
-							"pm.environment.unset(\"OLD_ASSET_ID2\");",
-							"",
-							"pm.environment.set(\"OLD_ASSET_ID2\", pm.response.text());"
+							""
 						]
 					}
 				}
@@ -297,31 +191,19 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "testupload4.txt"
-						},
-						{
-							"key": "scene",
-							"value": "assetScene",
-							"description": "",
-							"type": "text"
-						},
-						{
-							"key": "object",
-							"value": "assetObject",
-							"description": "",
-							"type": "text"
+              "src": "testupload2.txt"
 						}
 					]
 				},
 				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset/{{ASSET_ID2}}",
+					"raw": "{{AESEL_URL}}/v1/asset/{{ASSET_ID}}",
 					"host": [
 						"{{AESEL_URL}}"
 					],
 					"path": [
 						"v1",
 						"asset",
-						"{{ASSET_ID2}}"
+						"{{ASSET_ID}}"
 					]
 				}
 			},
@@ -333,7 +215,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "ddef8b6f-f259-45cf-a66e-4a1af69ce1f7",
+						"id": "dca02a75-74ba-4a0c-a0b0-e91156c12bb2",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Response time is less than 5000ms\", function () {",
@@ -342,45 +224,14 @@
 							"",
 							"pm.test(\"Status code is 200\", function () {",
 							"    pm.response.to.have.status(200);",
-							"});"
-						]
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {},
-				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset-history/{{ASSET_ID}}",
-					"host": [
-						"{{AESEL_URL}}"
-					],
-					"path": [
-						"v1",
-						"asset-history",
-						"{{ASSET_ID}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get Asset History2",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "ddef8b6f-f259-45cf-a66e-4a1af69ce1f7",
-						"type": "text/javascript",
-						"exec": [
-							"pm.test(\"Response time is less than 5000ms\", function () {",
-							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
 							"});",
 							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});"
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.length).to.not.eql(0);",
+							"});",
+							""
 						]
 					}
 				}
@@ -388,15 +239,18 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset-history/{{ASSET_ID2}}",
+					"raw": "{{AESEL_URL}}/v1/history/{{ASSET_ID2}}",
 					"host": [
 						"{{AESEL_URL}}"
 					],
 					"path": [
 						"v1",
-						"asset-history",
+						"history",
 						"{{ASSET_ID2}}"
 					]
 				}
@@ -404,12 +258,12 @@
 			"response": []
 		},
 		{
-			"name": "Delete Test File",
+			"name": "Upload Test File with Relationship",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "17228248-7ee8-444e-8f49-7d94cdcba892",
+						"id": "b0ceb3c3-2a30-4ea1-874f-63fe5c95b7da",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Response time is less than 5000ms\", function () {",
@@ -418,7 +272,191 @@
 							"",
 							"pm.test(\"Status code is 200\", function () {",
 							"    pm.response.to.have.status(200);",
-							"});"
+							"});",
+							"",
+							"pm.environment.unset(\"ASSET_ID3\");",
+							"",
+							"pm.environment.set(\"ASSET_ID3\", pm.response.text());",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+              "src": "testupload3.txt"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/asset?related-id={{ASSET_ID2}}&related-type=thumbnail&asset-type=thumbnail",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"asset"
+					],
+					"query": [
+						{
+							"key": "related-id",
+							"value": "{{ASSET_ID2}}"
+						},
+						{
+							"key": "related-type",
+							"value": "thumbnail"
+						},
+						{
+							"key": "asset-type",
+							"value": "thumbnail"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query Relationships",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2afbf6c0-2920-4557-a616-8097428a8762",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.length).to.not.eql(0);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/relationship?type=thumbnail&related={{ASSET_ID2}}",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"relationship"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "thumbnail"
+						},
+						{
+							"key": "related",
+							"value": "{{ASSET_ID2}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Relationship",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e24f51c2-3843-4e07-a7ec-0b42f7fb2dc0",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.length).to.not.eql(0);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"assetId\": \"{{ASSET_ID}}\",\n    \"relationshipType\": \"scene\",\n    \"relatedId\": \"123\"\n}"
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/relationship",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"relationship"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Relationship",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e07481f1-e418-4afa-9f54-0565a66c9085",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.length).to.not.eql(0);",
+							"});",
+							""
 						]
 					}
 				}
@@ -431,14 +469,27 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset/{{ASSET_ID}}",
+					"raw": "{{AESEL_URL}}/v1/relationship?type=scene&related=123&asset={{ASSET_ID}}",
 					"host": [
 						"{{AESEL_URL}}"
 					],
 					"path": [
 						"v1",
-						"asset",
-						"{{ASSET_ID}}"
+						"relationship"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "scene"
+						},
+						{
+							"key": "related",
+							"value": "123"
+						},
+						{
+							"key": "asset",
+							"value": "{{ASSET_ID}}"
+						}
 					]
 				}
 			},
@@ -467,7 +518,10 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
 					"raw": "{{AESEL_URL}}/v1/asset/{{ASSET_ID2}}",
 					"host": [
@@ -510,52 +564,14 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset/{{OLD_ASSET_ID}}",
+					"raw": "{{AESEL_URL}}/v1/asset/{{ASSET_ID}}",
 					"host": [
 						"{{AESEL_URL}}"
 					],
 					"path": [
 						"v1",
 						"asset",
-						"{{OLD_ASSET_ID}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Delete Old Test File2",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "17228248-7ee8-444e-8f49-7d94cdcba892",
-						"type": "text/javascript",
-						"exec": [
-							"pm.test(\"Response time is less than 5000ms\", function () {",
-							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
-							"});",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});"
-						]
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"body": {},
-				"url": {
-					"raw": "{{AESEL_URL}}/v1/asset/{{OLD_ASSET_ID2}}",
-					"host": [
-						"{{AESEL_URL}}"
-					],
-					"path": [
-						"v1",
-						"asset",
-						"{{OLD_ASSET_ID2}}"
+						"{{ASSET_ID}}"
 					]
 				}
 			},

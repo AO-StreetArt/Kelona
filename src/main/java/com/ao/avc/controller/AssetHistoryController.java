@@ -74,7 +74,7 @@ public class AssetHistoryController {
   /**
   * Retrieve an Asset History.
   */
-  @GetMapping("/v1/asset-history/{assetId}")
+  @GetMapping("/v1/history/{assetId}")
   @ResponseBody
   public ResponseEntity<List<AssetHistory>> getHistory(@PathVariable String assetId) {
     logger.info("Responding to Asset History Get Request");

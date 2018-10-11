@@ -10,7 +10,7 @@ Asset History Retrieval
 
 .. http:get:: /v1/asset/(asset_key)
 
-   Get a list of Asset Histories associated to a particular Asset.
+   Get the Asset History associated to a particular Asset.
 
    :statuscode 200: Success
 

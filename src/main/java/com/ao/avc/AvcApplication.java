@@ -29,14 +29,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.retry.annotation.EnableRetry;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -44,6 +43,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
 @EnableAutoConfiguration
@@ -69,9 +69,10 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
   // -------- Security Configuration ---------
 
   // Security Realm
-  private static String REALM="AVC_REALM";
+  private static String REALM = "AVC_REALM";
 
   BCryptPasswordEncoder passEncoder = new BCryptPasswordEncoder();
+
 
   // Configure Basic Auth
   @Autowired
@@ -100,8 +101,8 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
 
   // Set entrypoint for Authentication Failures
   @Bean
-  public AvcBasicAuthEntryPoint getBasicAuthEntryPoint(){
-      return new AvcBasicAuthEntryPoint();
+  public AvcBasicAuthEntryPoint getBasicAuthEntryPoint() {
+    return new AvcBasicAuthEntryPoint();
   }
 
   // Allow Pre-flight [OPTIONS] request from browser
