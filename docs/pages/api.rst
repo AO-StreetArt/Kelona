@@ -16,4 +16,4 @@ API Documentation
 
    Asset_API.rst
    Asset_History_API.rst
-   Asset_Response_API.rst
+   Asset_Relationship_API.rst
