@@ -8,7 +8,7 @@ An Asset History is a record of all the versions of a particular asset.
 Asset History Retrieval
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. http:get:: /v1/asset/(asset_key)
+.. http:get:: /v1/history/(asset_key)
 
    Get the Asset History associated to a particular Asset.
 
