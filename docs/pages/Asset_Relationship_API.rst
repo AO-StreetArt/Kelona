@@ -49,9 +49,9 @@ Asset Relationship Query
 
    Find Asset Relationships based on one or more attributes.
 
-   :query string asset: Required.  The Asset ID of the Relationship to find.
-   :query string related: Required.  The Related ID of the Relationship to find.
-   :query string type: Required.  The type of Relationship to find.
+   :query string asset: Optional.  The Asset ID of the Relationship to find.
+   :query string related: Optional.  The Related ID of the Relationship to find.
+   :query string type: Optional.  The type of Relationship to find.
    :statuscode 200: Success
 
 .. include:: _examples/asset/asset_relationship_query.rst
