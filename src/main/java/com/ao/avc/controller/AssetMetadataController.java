@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.codec.binary.Hex;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -120,7 +122,7 @@ public class AssetMetadataController {
       Document metaDoc = mongoFile.getMetadata();
       AssetMetadata returnDoc = new AssetMetadata();
       logger.info(metaDoc.toString());
-      returnDoc.setKey(mongoFile.getId().asObjectId().toString());
+      returnDoc.setKey(Hex.encodeHexString(mongoFile.getId().asObjectId().getValue().toByteArray()));
       returnDoc.setContentType(metaDoc.getString("content-type"));
       returnDoc.setFileType(metaDoc.getString("file-type"));
       returnDoc.setAssetType(metaDoc.getString("asset-type"));

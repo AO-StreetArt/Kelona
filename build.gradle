@@ -68,6 +68,7 @@ dependencies {
   compile('org.springframework.security:spring-security-web:5.1.0.RELEASE')
   compile('org.springframework.security:spring-security-config:5.1.0.RELEASE')
   compile('org.springframework.security:spring-security-core:5.1.0.RELEASE')
+  compile('commons-codec:commons-codec:1.5')
 	runtime('org.springframework.boot:spring-boot-devtools')
   errorprone 'com.google.errorprone:error_prone_core:2.2.0'
 	compileOnly('org.projectlombok:lombok')
