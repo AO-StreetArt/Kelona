@@ -120,7 +120,7 @@ public class AssetMetadataController {
       Document metaDoc = mongoFile.getMetadata();
       AssetMetadata returnDoc = new AssetMetadata();
       logger.info(metaDoc.toString());
-      returnDoc.setKey(mongoFile.getObjectId().toString());
+      returnDoc.setKey(mongoFile.getObjectId().toHexString());
       returnDoc.setContentType(metaDoc.getString("content-type"));
       returnDoc.setFileType(metaDoc.getString("file-type"));
       returnDoc.setAssetType(metaDoc.getString("asset-type"));
