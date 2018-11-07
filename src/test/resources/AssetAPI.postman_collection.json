@@ -155,6 +155,54 @@
 			"response": []
 		},
 		{
+			"name": "Count Assets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2a4e219b-62db-460c-83ac-30075fb3f32f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/asset/count?content-type=text/plain",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"asset",
+						"count"
+					],
+					"query": [
+						{
+							"key": "content-type",
+							"value": "text/plain"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Update Test File2",
 			"event": [
 				{

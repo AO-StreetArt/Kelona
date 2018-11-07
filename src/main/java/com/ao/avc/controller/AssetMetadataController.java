@@ -25,9 +25,14 @@ import com.ao.avc.model.AssetRelationship;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.GridFSFindIterable;
 import com.mongodb.client.gridfs.model.GridFSFile;
+import com.mongodb.client.model.Sorts;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -36,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.codec.binary.Hex;
 
@@ -45,9 +51,13 @@ import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
@@ -69,8 +79,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
-* Rest Controller defining the Asset API.
-* Responsible for handling and responding to all Asset API Requests.
+* Rest Controller defining the Asset Metadata API.
+* Uses the base Mongo driver for Java to connect in order
+* to provide full querying capacity against the underlying
+* mongo collections.
 */
 @Controller
 public class AssetMetadataController {
@@ -83,6 +95,50 @@ public class AssetMetadataController {
   private static final Logger logger =
       LogManager.getLogger("avc.AssetController");
 
+  @Value(value = "${mongo.metadata.collection:fs.files}")
+  private String mongoCollectionName;
+
+  @Autowired
+  MongoDatabase mongoDb;
+  MongoCollection<Document> mongoCollection = null;
+
+  /**
+  * Use the Mongo Client to access the database and collection.
+  */
+  @PostConstruct
+  public void init() {
+    mongoCollection = mongoDb.getCollection(mongoCollectionName);
+  }
+
+  /**
+   * Count assets
+   */
+  @GetMapping("/v1/asset/count")
+  @ResponseBody
+  public ResponseEntity<String> countAssets(
+      @RequestParam(value = "content-type", defaultValue = "") String contentType,
+      @RequestParam(value = "file-type", defaultValue = "") String fileType,
+      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType) {
+    logger.info("Responding to Asset Count Request");
+    HttpHeaders responseHeaders = new HttpHeaders();
+    responseHeaders.set("Content-Type", "application/json");
+
+    // Run the Mongo Query
+    BasicDBObject query = new BasicDBObject();
+    if (!(contentType.isEmpty())) {
+      query.put("metadata.content-type", contentType);
+    } else if (!(fileType.isEmpty())) {
+      query.put("metadata.file-type", fileType);
+    } else if (!(assetType.isEmpty())) {
+      query.put("metadata.asset-type", assetType);
+    }
+    long assetCount = mongoCollection.count(query);
+
+    // Setup the response
+    String returnString = "{\"count\":" + String.valueOf(assetCount) + "}";
+    return new ResponseEntity<String>(returnString, responseHeaders, HttpStatus.OK);
+  }
+
   /**
   * Find Assets by metadata.
   */
@@ -91,38 +147,52 @@ public class AssetMetadataController {
   public ResponseEntity<List<AssetMetadata>> findAssets(
       @RequestParam(value = "content-type", defaultValue = "") String contentType,
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
-      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType)
+      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType,
+      @RequestParam(value = "limit", defaultValue = "100") int queryLimit,
+      @RequestParam(value = "offset", defaultValue = "0") int queryOffset)
       throws MalformedURLException, IOException {
     logger.info("Responding to Asset Find Request");
     HttpHeaders responseHeaders = new HttpHeaders();
-    // Load the file from Mongo
     GridFSFindIterable gridFsdbFiles;
+    FindIterable<Document> resultDocs;
     try {
-      Query query = new Query();
+
+      // Run the Mongo Query
+      BasicDBObject query = new BasicDBObject();
       if (!(contentType.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.content-type").is(contentType));
+        query.put("metadata.content-type", contentType);
       } else if (!(fileType.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.file-type").is(fileType));
+        query.put("metadata.file-type", fileType);
       } else if (!(assetType.isEmpty())) {
-        query.addCriteria(Criteria.where("metadata.asset-type").is(assetType));
+        query.put("metadata.asset-type", assetType);
       }
-      gridFsdbFiles = gridFsTemplate.find(query);
+      resultDocs = mongoCollection.find(query)
+                                  .sort(Sorts.ascending("_id"))
+                                  .skip(queryOffset)
+                                  .limit(queryLimit);
+
+    // Error Handling
     } catch (Exception e) {
       logger.error("Error Retrieving Asset from Mongo: ", e);
       return new ResponseEntity<List<AssetMetadata>>(
           new ArrayList<AssetMetadata>(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    if (gridFsdbFiles == null) {
+    if (resultDocs == null) {
       logger.error("Null Asset Retrieved from Mongo");
       return new ResponseEntity<List<AssetMetadata>>(
           new ArrayList<AssetMetadata>(), responseHeaders, HttpStatus.NO_CONTENT);
     }
+
+    // Load asset metadata into the return list
     List<AssetMetadata> returnList = new ArrayList<AssetMetadata>();
-    for (GridFSFile mongoFile : gridFsdbFiles) {
-      Document metaDoc = mongoFile.getMetadata();
+    MongoCursor<Document> returnCursor = resultDocs.iterator();
+    while (returnCursor.hasNext()) {
+      Document dbDoc = returnCursor.next();
+      Document defaultDoc = new Document();
+      Document metaDoc = dbDoc.get("metadata", defaultDoc);
       AssetMetadata returnDoc = new AssetMetadata();
-      logger.info(metaDoc.toString());
-      returnDoc.setKey(Hex.encodeHexString(mongoFile.getId().asObjectId().getValue().toByteArray()));
+      logger.debug("Metadata returned from Query: " + metaDoc.toString());
+      returnDoc.setKey(Hex.encodeHexString(dbDoc.getObjectId("_id").toByteArray()));
       returnDoc.setContentType(metaDoc.getString("content-type"));
       returnDoc.setFileType(metaDoc.getString("file-type"));
       returnDoc.setAssetType(metaDoc.getString("asset-type"));
