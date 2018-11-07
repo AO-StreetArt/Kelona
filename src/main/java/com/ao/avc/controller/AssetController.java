@@ -163,11 +163,25 @@ public class AssetController {
   }
 
   /**
-  * Retrieve an Asset.
+  * Retrieve an Asset by ID.
   */
   @GetMapping("/v1/asset/{key}")
   @ResponseBody
   public ResponseEntity<Resource> serveFile(@PathVariable String key)
+      throws MalformedURLException, IOException {
+    return getAsset(key);
+  }
+
+  /**
+  * Retrieve an Asset by ID, using a filename extension.
+  * This makes it easy to support browser-based asset loaders.
+  * Note that we're note going to actually use the filename here,
+  * it's just for convenience.
+  */
+  @GetMapping("/v1/asset/{key}/{filename}")
+  @ResponseBody
+  public ResponseEntity<Resource> serveFile(@PathVariable String key,
+                                            @PathVariable String filename)
       throws MalformedURLException, IOException {
     return getAsset(key);
   }
