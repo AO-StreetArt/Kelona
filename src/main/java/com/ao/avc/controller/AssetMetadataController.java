@@ -118,7 +118,9 @@ public class AssetMetadataController {
   public ResponseEntity<String> countAssets(
       @RequestParam(value = "content-type", defaultValue = "") String contentType,
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
-      @RequestParam(value = "asset-type", defaultValue = "") String assetType) {
+      @RequestParam(value = "asset-type", defaultValue = "") String assetType,
+      @RequestParam(value = "name", defaultValue = "") String assetName,
+      @RequestParam(value = "description", defaultValue = "") String assetDesc) {
     logger.info("Responding to Asset Count Request");
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "application/json");
@@ -131,6 +133,10 @@ public class AssetMetadataController {
       query.put("metadata.file-type", fileType);
     } else if (!(assetType.isEmpty())) {
       query.put("metadata.asset-type", assetType);
+    } else if (!(assetName.isEmpty())) {
+      query.put("metadata.name", assetName);
+    } else if (!(assetDesc.isEmpty())) {
+      query.put("metadata.description", assetDesc);
     }
     long assetCount = mongoCollection.count(query);
 
@@ -148,6 +154,8 @@ public class AssetMetadataController {
       @RequestParam(value = "content-type", defaultValue = "") String contentType,
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "") String assetType,
+      @RequestParam(value = "name", defaultValue = "") String assetName,
+      @RequestParam(value = "description", defaultValue = "") String assetDesc,
       @RequestParam(value = "limit", defaultValue = "100") int queryLimit,
       @RequestParam(value = "offset", defaultValue = "0") int queryOffset)
       throws MalformedURLException, IOException {
@@ -165,6 +173,10 @@ public class AssetMetadataController {
         query.put("metadata.file-type", fileType);
       } else if (!(assetType.isEmpty())) {
         query.put("metadata.asset-type", assetType);
+      } else if (!(assetName.isEmpty())) {
+        query.put("metadata.name", assetName);
+      } else if (!(assetDesc.isEmpty())) {
+        query.put("metadata.description", assetDesc);
       }
       resultDocs = mongoCollection.find(query)
                                   .sort(Sorts.ascending("_id"))
@@ -194,6 +206,8 @@ public class AssetMetadataController {
       logger.debug("Metadata returned from Query: " + metaDoc.toString());
       returnDoc.setKey(Hex.encodeHexString(dbDoc.getObjectId("_id").toByteArray()));
       returnDoc.setContentType(metaDoc.getString("content-type"));
+      returnDoc.setName(metaDoc.getString("name"));
+      returnDoc.setDescription(metaDoc.getString("description"));
       returnDoc.setFileType(metaDoc.getString("file-type"));
       returnDoc.setAssetType(metaDoc.getString("asset-type"));
       returnDoc.setCreatedTimestamp(metaDoc.getString("created-dttm"));
