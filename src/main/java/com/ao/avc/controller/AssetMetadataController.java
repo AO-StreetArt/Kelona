@@ -118,7 +118,7 @@ public class AssetMetadataController {
   public ResponseEntity<String> countAssets(
       @RequestParam(value = "content-type", defaultValue = "") String contentType,
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
-      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType) {
+      @RequestParam(value = "asset-type", defaultValue = "") String assetType) {
     logger.info("Responding to Asset Count Request");
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "application/json");
@@ -147,7 +147,7 @@ public class AssetMetadataController {
   public ResponseEntity<List<AssetMetadata>> findAssets(
       @RequestParam(value = "content-type", defaultValue = "") String contentType,
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
-      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType,
+      @RequestParam(value = "asset-type", defaultValue = "") String assetType,
       @RequestParam(value = "limit", defaultValue = "100") int queryLimit,
       @RequestParam(value = "offset", defaultValue = "0") int queryOffset)
       throws MalformedURLException, IOException {
