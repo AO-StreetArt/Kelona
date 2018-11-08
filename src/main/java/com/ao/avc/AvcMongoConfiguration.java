@@ -89,6 +89,7 @@ public class AvcMongoConfiguration extends AbstractMongoConfiguration {
 
   // Connect to Mongo, potentially authenticated
   @Override
+  @Bean
   public MongoClient mongoClient() {
     // Build Mongo Connection Ops
 
@@ -151,5 +152,11 @@ public class AvcMongoConfiguration extends AbstractMongoConfiguration {
   @Bean public GridFSBucket getGridFSBuckets() {
     MongoDatabase db = mongoDbFactory().getDb();
     return GridFSBuckets.create(db);
+  }
+
+  // Definition for accessing underlying Mongo Driver
+  @Bean
+  public MongoDatabase mongoDatabase() {
+    return mongoDbFactory().getDb();
   }
 }

@@ -105,14 +105,6 @@ public class AvcApplication extends WebSecurityConfigurerAdapter {
     return new AvcBasicAuthEntryPoint();
   }
 
-  // Allow Pre-flight [OPTIONS] request from browser
-  @Override
-  public void configure(WebSecurity web) throws Exception {
-    if (httpAuthActive) {
-      web.ignoring().antMatchers(HttpMethod.OPTIONS, "/**");
-    }
-  }
-
   // ---------- Main App -------------
 
   // Run the main application

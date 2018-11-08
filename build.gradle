@@ -51,6 +51,7 @@ configurations {
 }
 
 dependencies {
+  compile('org.mongodb:mongo-java-driver:3.8.2')
 	compile('org.springframework.boot:spring-boot-starter-actuator')
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb')
 	compile('org.springframework.boot:spring-boot-starter-web')
