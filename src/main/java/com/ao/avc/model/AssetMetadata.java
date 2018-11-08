@@ -25,6 +25,8 @@ import lombok.NoArgsConstructor;
 public class AssetMetadata {
 
   private String key;
+  private String name;
+  private String description;
   private String contentType;
   private String fileType;
   private String assetType;

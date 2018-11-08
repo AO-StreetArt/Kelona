@@ -198,11 +198,15 @@ public class AssetController {
       @RequestParam(value = "related-type", defaultValue = "") String relatedType,
       @RequestParam(value = "content-type", defaultValue = "text/plain") String contentType,
       @RequestParam(value = "file-type", defaultValue = "txt") String fileType,
-      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType) {
+      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType,
+      @RequestParam(value = "name", defaultValue = "") String assetName,
+      @RequestParam(value = "description", defaultValue = "") String assetDesc) {
     logger.info("Responding to Asset Save Request");
 
     // Persist the file
     DBObject metaData = new BasicDBObject();
+    metaData.put("name", assetName);
+    metaData.put("description", assetDesc);
     metaData.put("content-type", contentType);
     metaData.put("file-type", fileType);
     metaData.put("asset-type", assetType);
@@ -239,9 +243,13 @@ public class AssetController {
       @RequestParam("file") MultipartFile file,
       @RequestParam(value = "content-type", defaultValue = "text/plain") String contentType,
       @RequestParam(value = "file-type", defaultValue = "txt") String fileType,
-      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType) {
+      @RequestParam(value = "asset-type", defaultValue = "standard") String assetType,
+      @RequestParam(value = "name", defaultValue = "") String assetName,
+      @RequestParam(value = "description", defaultValue = "") String assetDesc) {
     // Persist New Asset
     DBObject metaData = new BasicDBObject();
+    metaData.put("name", assetName);
+    metaData.put("description", assetDesc);
     metaData.put("content-type", contentType);
     metaData.put("file-type", fileType);
     metaData.put("asset-type", assetType);
