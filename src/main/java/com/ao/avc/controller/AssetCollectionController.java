@@ -40,7 +40,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -111,15 +111,18 @@ public class AssetCollectionController {
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "application/json");
     List<AssetCollection> returnCollections = null;
-    Pageable pageable = new PageRequest(pageNum, recordsInPage);
+    Pageable pageable = new QPageRequest(pageNum, recordsInPage);
     if (!name.equals("")) {
       returnCollections = assetCollections.findByName(name, pageable);
     } else if (!category.equals("") && !tag.equals("")) {
-      returnCollections = assetCollections.findByCategoryAndTagsIn(category, new HashSet<String>(Arrays.asList(tag)), pageable);
+      returnCollections = assetCollections.findByCategoryAndTagsIn(category,
+                                                                   new HashSet<String>(Arrays.asList(tag)),
+                                                                   pageable);
     } else if (!category.equals("")) {
       returnCollections = assetCollections.findByCategory(category, pageable);
     } else if (!tag.equals("")) {
-      returnCollections = assetCollections.findByTagsIn(new HashSet<String>(Arrays.asList(tag)), pageable);
+      returnCollections = assetCollections.findByTagsIn(new HashSet<String>(Arrays.asList(tag)),
+                                                        pageable);
     } else {
       returnCollections = assetCollections.findAll(pageable).getContent();
     }
@@ -130,7 +133,9 @@ public class AssetCollectionController {
     }
 
     // Create and return the new HTTP Response
-    return new ResponseEntity<List<AssetCollection>>(returnCollections, responseHeaders, returnCode);
+    return new ResponseEntity<List<AssetCollection>>(returnCollections,
+                                                     responseHeaders,
+                                                     returnCode);
   }
 
   /**

@@ -118,7 +118,6 @@ public class AssetRelationshipController {
       @RequestParam(value = "related", defaultValue = "") String relatedId,
       @RequestBody AssetRelationship inpRelationship) {
     logger.info("Responding to Asset Relationship Addition Request");
-    HttpStatus returnCode = HttpStatus.OK;
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "application/json");
     List<AssetRelationship> updatedRelationships;
@@ -151,7 +150,10 @@ public class AssetRelationshipController {
     }
 
     // Send the response
-    return new ResponseEntity<List<AssetRelationship>>(updatedRelationships, responseHeaders, returnCode);
+    HttpStatus returnCode = HttpStatus.OK;
+    return new ResponseEntity<List<AssetRelationship>>(updatedRelationships,
+                                                       responseHeaders,
+                                                       returnCode);
   }
 
   /**
