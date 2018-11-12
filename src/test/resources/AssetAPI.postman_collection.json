@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "6ae6701a-cc87-4fd5-8232-80fe919ef24a",
-		"name": "Avc",
+		"_postman_id": "59ebc802-7c67-4d7f-9049-f82db221bb10",
+		"name": "Avc copy",
 		"description": "Run Basic Tests on the Aesel Asset API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -42,8 +42,8 @@
 					"formdata": [
 						{
 							"key": "file",
-							"type": "file",
-              "src": "testupload.txt"
+              "src": "testupload.txt",
+							"type": "file"
 						}
 					]
 				},
@@ -238,8 +238,8 @@
 					"formdata": [
 						{
 							"key": "file",
-							"type": "file",
-              "src": "testupload2.txt"
+              "src": "testupload2.txt",
+							"type": "file"
 						}
 					]
 				},
@@ -341,8 +341,8 @@
 					"formdata": [
 						{
 							"key": "file",
-							"type": "file",
-              "src": "testupload3.txt"
+              "src": "testupload3.txt",
+							"type": "file"
 						}
 					]
 				},
@@ -620,6 +620,238 @@
 						"v1",
 						"asset",
 						"{{ASSET_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Asset Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5da9b54c-5fbe-4ddd-a142-5d816742a358",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.environment.unset(\"COLLECTION_ID\");",
+							"",
+							"pm.environment.set(\"COLLECTION_ID\", jsonData.id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\":\"testCollection\",\n\t\"description\": \"This is a test\",\n\t\"category\": \"test\",\n\t\"tags\": [\"test1\"]\n}"
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/collection",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"collection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Asset Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ddef8b6f-f259-45cf-a66e-4a1af69ce1f7",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/collection/{{COLLECTION_ID}}",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"collection",
+						"{{COLLECTION_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Asset Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7be899fc-a572-4dec-bf4c-374100aa8eb9",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\":\"anotherName\",\n\t\"description\": \"This is another test\",\n\t\"category\": \"test2\",\n\t\"tags\": [\"test3\"]\n}"
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/collection/{{COLLECTION_ID}}",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"collection",
+						"{{COLLECTION_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query Asset Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ddef8b6f-f259-45cf-a66e-4a1af69ce1f7",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/collection?name=anotherName",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"collection"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "anotherName"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "17228248-7ee8-444e-8f49-7d94cdcba892",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/collection/{{COLLECTION_ID}}",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"collection",
+						"{{COLLECTION_ID}}"
 					]
 				}
 			},

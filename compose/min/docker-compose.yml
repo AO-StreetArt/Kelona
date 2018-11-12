@@ -12,9 +12,6 @@ services:
     container_name: kelona
     ports:
       - "5635:5635"
-    depends_on:
-      registry:
-        condition: service_healthy
     environment:
       - MONGO_HOSTS=document-db
       - SPRING_CLOUD_CONSUL_HOST=registry

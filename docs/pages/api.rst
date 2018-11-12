@@ -15,5 +15,6 @@ API Documentation
    :caption: Contents:
 
    Asset_API.rst
+   Asset_Collection_API.rst
    Asset_History_API.rst
    Asset_Relationship_API.rst
