@@ -771,6 +771,52 @@
 			"response": []
 		},
 		{
+			"name": "Query Asset Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ddef8b6f-f259-45cf-a66e-4a1af69ce1f7",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/collection?name=anotherName",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"collection"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "anotherName"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Delete Collection",
 			"event": [
 				{

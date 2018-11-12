@@ -21,13 +21,14 @@ import com.ao.avc.model.AssetCollection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface AssetCollectionRepository extends MongoRepository<AssetCollection, String> {
 
-  public List<AssetCollection> findByName(String name);
-  public List<AssetCollection> findByCategory(String category);
-  public List<AssetCollection> findByTagsIn(Set<String> tags);
-  public List<AssetCollection> findByCategoryAndTagsIn(String category, Set<String> tags);
+  public List<AssetCollection> findByName(String name, Pageable pageable);
+  public List<AssetCollection> findByCategory(String category, Pageable pageable);
+  public List<AssetCollection> findByTagsIn(Set<String> tags, Pageable pageable);
+  public List<AssetCollection> findByCategoryAndTagsIn(String category, Set<String> tags, Pageable pageable);
 
 }

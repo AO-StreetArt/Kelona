@@ -39,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -101,22 +103,25 @@ public class AssetCollectionController {
   public ResponseEntity<List<AssetCollection>> findCollections(
       @RequestParam(value = "name", defaultValue = "") String name,
       @RequestParam(value = "category", defaultValue = "") String category,
-      @RequestParam(value = "tag", defaultValue = "") String tag) {
+      @RequestParam(value = "tag", defaultValue = "") String tag,
+      @RequestParam(value = "num_records", defaultValue = "10") int recordsInPage,
+      @RequestParam(value = "page", defaultValue = "0") int pageNum) {
     logger.info("Responding to Asset Collection Get Request");
     HttpStatus returnCode = HttpStatus.OK;
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "application/json");
     List<AssetCollection> returnCollections = null;
+    Pageable pageable = new PageRequest(pageNum, recordsInPage);
     if (name != "") {
-      returnCollections = assetCollections.findByName(name);
+      returnCollections = assetCollections.findByName(name, pageable);
     } else if (category != "" && tag != "") {
-      returnCollections = assetCollections.findByCategoryAndTagsIn(category, new HashSet<String>(Arrays.asList(tag)));
+      returnCollections = assetCollections.findByCategoryAndTagsIn(category, new HashSet<String>(Arrays.asList(tag)), pageable);
     } else if (category != "") {
-      returnCollections = assetCollections.findByCategory(category);
+      returnCollections = assetCollections.findByCategory(category, pageable);
     } else if (tag != "") {
-      returnCollections = assetCollections.findByTagsIn(new HashSet<String>(Arrays.asList(tag)));
+      returnCollections = assetCollections.findByTagsIn(new HashSet<String>(Arrays.asList(tag)), pageable);
     } else {
-      returnCollections = assetCollections.findAll();
+      returnCollections = assetCollections.findAll(pageable).getContent();
     }
     if (returnCollections.size() == 0 && returnCode == HttpStatus.OK) {
       returnCode = HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE;
