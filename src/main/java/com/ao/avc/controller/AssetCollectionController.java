@@ -112,13 +112,13 @@ public class AssetCollectionController {
     responseHeaders.set("Content-Type", "application/json");
     List<AssetCollection> returnCollections = null;
     Pageable pageable = new PageRequest(pageNum, recordsInPage);
-    if (name != "") {
+    if (!name.equals("")) {
       returnCollections = assetCollections.findByName(name, pageable);
-    } else if (category != "" && tag != "") {
+    } else if (!category.equals("") && !tag.equals("")) {
       returnCollections = assetCollections.findByCategoryAndTagsIn(category, new HashSet<String>(Arrays.asList(tag)), pageable);
-    } else if (category != "") {
+    } else if (!category.equals("")) {
       returnCollections = assetCollections.findByCategory(category, pageable);
-    } else if (tag != "") {
+    } else if (!tag.equals("")) {
       returnCollections = assetCollections.findByTagsIn(new HashSet<String>(Arrays.asList(tag)), pageable);
     } else {
       returnCollections = assetCollections.findAll(pageable).getContent();
