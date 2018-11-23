@@ -154,8 +154,8 @@ public class AssetMetadataController {
       @RequestParam(value = "content-type", defaultValue = "") String contentType,
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "") String assetType,
+      @RequestParam(value = "key", defaultValue = "") String assetKey,
       @RequestParam(value = "name", defaultValue = "") String assetName,
-      @RequestParam(value = "description", defaultValue = "") String assetDesc,
       @RequestParam(value = "limit", defaultValue = "100") int queryLimit,
       @RequestParam(value = "offset", defaultValue = "0") int queryOffset)
       throws MalformedURLException, IOException {
@@ -175,8 +175,8 @@ public class AssetMetadataController {
         query.put("metadata.asset-type", assetType);
       } else if (!(assetName.isEmpty())) {
         query.put("metadata.name", assetName);
-      } else if (!(assetDesc.isEmpty())) {
-        query.put("metadata.description", assetDesc);
+      } else if (!(assetKey.isEmpty())) {
+        query.put("_id", assetKey);
       }
       resultDocs = mongoCollection.find(query)
                                   .sort(Sorts.ascending("_id"))
