@@ -49,6 +49,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -176,7 +177,7 @@ public class AssetMetadataController {
       } else if (!(assetName.isEmpty())) {
         query.put("metadata.name", assetName);
       } else if (!(assetKey.isEmpty())) {
-        query.put("_id", assetKey);
+        query.put("_id", new ObjectId(assetKey));
       }
       resultDocs = mongoCollection.find(query)
                                   .sort(Sorts.ascending("_id"))
