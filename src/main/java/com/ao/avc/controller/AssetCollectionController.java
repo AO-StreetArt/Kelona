@@ -91,7 +91,7 @@ public class AssetCollectionController {
   @Autowired
   MongoDatabase mongoDb;
   MongoCollection<Document> mongoCollection = null;
-  private String mongoCollectionName = "assetcollections";
+  private String mongoCollectionName = "assetcollection";
 
   /**
   * Use the Mongo Client to access the database and collection.
