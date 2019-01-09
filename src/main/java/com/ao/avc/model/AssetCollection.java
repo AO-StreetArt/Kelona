@@ -34,6 +34,9 @@ public class AssetCollection {
   public String name;
   public String description;
   public String category;
+  public String thumbnail;
+  public String user;
+  public boolean isPublic;
   public List<String> tags;
 
 }
