@@ -73,6 +73,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -121,24 +122,45 @@ public class AssetMetadataController {
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "") String assetType,
       @RequestParam(value = "name", defaultValue = "") String assetName,
-      @RequestParam(value = "description", defaultValue = "") String assetDesc) {
+      @RequestParam(value = "description", defaultValue = "") String assetDesc,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal) {
     logger.info("Responding to Asset Count Request");
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "application/json");
 
     // Run the Mongo Query
     BasicDBObject query = new BasicDBObject();
+    ArrayList<BasicDBObject> queryObjectList = new ArrayList<BasicDBObject>();
     if (!(contentType.isEmpty())) {
-      query.put("metadata.content-type", contentType);
+      BasicDBObject innerCTypeQuery = new BasicDBObject();
+      innerCTypeQuery.put("metadata.content-type", contentType);
+      queryObjectList.add(innerCTypeQuery);
     } else if (!(fileType.isEmpty())) {
-      query.put("metadata.file-type", fileType);
+      BasicDBObject innerFTypeQuery = new BasicDBObject();
+      innerFTypeQuery.put("metadata.file-type", fileType);
+      queryObjectList.add(innerFTypeQuery);
     } else if (!(assetType.isEmpty())) {
-      query.put("metadata.asset-type", assetType);
+      BasicDBObject innerATypeQuery = new BasicDBObject();
+      innerATypeQuery.put("metadata.asset-type", assetType);
+      queryObjectList.add(innerATypeQuery);
     } else if (!(assetName.isEmpty())) {
-      query.put("metadata.name", assetName);
-    } else if (!(assetDesc.isEmpty())) {
-      query.put("metadata.description", assetDesc);
+      BasicDBObject innerNameQuery = new BasicDBObject();
+      innerNameQuery.put("metadata.name", assetName);
+      queryObjectList.add(innerNameQuery);
     }
+    if (!(aeselPrincipal.isEmpty())) {
+      BasicDBObject innerUserQuery = new BasicDBObject();
+      innerUserQuery.put("user", aeselPrincipal);
+      BasicDBObject innerPublicQuery = new BasicDBObject();
+      innerPublicQuery.put("isPublic", true);
+      ArrayList<BasicDBObject> innerQueryList = new ArrayList<BasicDBObject>();
+      innerQueryList.add(innerUserQuery);
+      innerQueryList.add(innerPublicQuery);
+      BasicDBObject innerOrQuery = new BasicDBObject();
+      innerOrQuery.put("$or", innerQueryList);
+      queryObjectList.add(innerOrQuery);
+    }
+    query.put("$and", queryObjectList);
     long assetCount = mongoCollection.count(query);
 
     // Setup the response
@@ -158,7 +180,8 @@ public class AssetMetadataController {
       @RequestParam(value = "key", defaultValue = "") String assetKey,
       @RequestParam(value = "name", defaultValue = "") String assetName,
       @RequestParam(value = "limit", defaultValue = "100") int queryLimit,
-      @RequestParam(value = "offset", defaultValue = "0") int queryOffset)
+      @RequestParam(value = "offset", defaultValue = "0") int queryOffset,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal)
       throws MalformedURLException, IOException {
     logger.info("Responding to Asset Find Request");
     HttpHeaders responseHeaders = new HttpHeaders();
@@ -167,18 +190,42 @@ public class AssetMetadataController {
     try {
 
       // Run the Mongo Query
+      ArrayList<BasicDBObject> queryObjectList = new ArrayList<BasicDBObject>();
       BasicDBObject query = new BasicDBObject();
       if (!(contentType.isEmpty())) {
-        query.put("metadata.content-type", contentType);
+        BasicDBObject innerCTypeQuery = new BasicDBObject();
+        innerCTypeQuery.put("metadata.content-type", contentType);
+        queryObjectList.add(innerCTypeQuery);
       } else if (!(fileType.isEmpty())) {
-        query.put("metadata.file-type", fileType);
+        BasicDBObject innerFTypeQuery = new BasicDBObject();
+        innerFTypeQuery.put("metadata.file-type", fileType);
+        queryObjectList.add(innerFTypeQuery);
       } else if (!(assetType.isEmpty())) {
-        query.put("metadata.asset-type", assetType);
+        BasicDBObject innerATypeQuery = new BasicDBObject();
+        innerATypeQuery.put("metadata.asset-type", assetType);
+        queryObjectList.add(innerATypeQuery);
       } else if (!(assetName.isEmpty())) {
-        query.put("metadata.name", assetName);
+        BasicDBObject innerNameQuery = new BasicDBObject();
+        innerNameQuery.put("metadata.name", assetName);
+        queryObjectList.add(innerNameQuery);
       } else if (!(assetKey.isEmpty())) {
-        query.put("_id", new ObjectId(assetKey));
+        BasicDBObject innerIdQuery = new BasicDBObject();
+        innerIdQuery.put("_id", new ObjectId(assetKey));
+        queryObjectList.add(innerIdQuery);
       }
+      if (!(aeselPrincipal.isEmpty())) {
+        BasicDBObject innerUserQuery = new BasicDBObject();
+        innerUserQuery.put("user", aeselPrincipal);
+        BasicDBObject innerPublicQuery = new BasicDBObject();
+        innerPublicQuery.put("isPublic", true);
+        ArrayList<BasicDBObject> innerQueryList = new ArrayList<BasicDBObject>();
+        innerQueryList.add(innerUserQuery);
+        innerQueryList.add(innerPublicQuery);
+        BasicDBObject innerOrQuery = new BasicDBObject();
+        innerOrQuery.put("$or", innerQueryList);
+        queryObjectList.add(innerOrQuery);
+      }
+      query.put("$and", queryObjectList);
       resultDocs = mongoCollection.find(query)
                                   .sort(Sorts.ascending("_id"))
                                   .skip(queryOffset)

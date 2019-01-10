@@ -31,5 +31,7 @@ public class AssetMetadata {
   private String fileType;
   private String assetType;
   private String createdTimestamp;
+  private String user;
+  private boolean isPublic;
 
 }

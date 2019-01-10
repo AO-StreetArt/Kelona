@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,6 +62,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -127,7 +129,7 @@ public class AssetController {
     }
   }
 
-  private ResponseEntity<Resource> getAsset(String id) throws MalformedURLException {
+  private ResponseEntity<Resource> getAsset(String id, String user) throws MalformedURLException {
     logger.info("Responding to Asset Get Request");
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "text/plain");
@@ -136,6 +138,11 @@ public class AssetController {
     try {
       Query query = new Query();
       query.addCriteria(Criteria.where("_id").is(id));
+      if (!(user.isEmpty())) {
+        query.addCriteria(new Criteria().orOperator(
+            Criteria.where("isPublic").is(true),
+            Criteria.where("user").is(user)));
+      }
       gridFsdbFile = gridFsTemplate.findOne(query);
     } catch (Exception e) {
       logger.error("Error Retrieving Asset from Mongo: ", e);
@@ -167,9 +174,10 @@ public class AssetController {
   */
   @GetMapping("/v1/asset/{key}")
   @ResponseBody
-  public ResponseEntity<Resource> serveFile(@PathVariable String key)
+  public ResponseEntity<Resource> serveFile(@PathVariable String key,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal)
       throws MalformedURLException, IOException {
-    return getAsset(key);
+    return getAsset(key, aeselPrincipal);
   }
 
   /**
@@ -181,9 +189,10 @@ public class AssetController {
   @GetMapping("/v1/asset/{key}/{filename}")
   @ResponseBody
   public ResponseEntity<Resource> serveFile(@PathVariable String key,
-                                            @PathVariable String filename)
+      @PathVariable String filename,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal)
       throws MalformedURLException, IOException {
-    return getAsset(key);
+    return getAsset(key, aeselPrincipal);
   }
 
   /**
@@ -199,7 +208,9 @@ public class AssetController {
       @RequestParam(value = "content-type", defaultValue = "text/plain") String contentType,
       @RequestParam(value = "file-type", defaultValue = "txt") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "standard") String assetType,
-      @RequestParam(value = "name", defaultValue = "") String assetName) {
+      @RequestParam(value = "name", defaultValue = "") String assetName,
+      @RequestParam(value = "isPublic", defaultValue = "true") boolean isPublic,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal) {
     logger.info("Responding to Asset Save Request");
 
     // Persist the file
@@ -208,6 +219,8 @@ public class AssetController {
     metaData.put("content-type", contentType);
     metaData.put("file-type", fileType);
     metaData.put("asset-type", assetType);
+    metaData.put("user", aeselPrincipal);
+    metaData.put("isPublic", isPublic);
     String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
     metaData.put("created-dttm", timeStamp);
     String newId = saveAsset(file, metaData, fileType);
@@ -242,13 +255,17 @@ public class AssetController {
       @RequestParam(value = "content-type", defaultValue = "text/plain") String contentType,
       @RequestParam(value = "file-type", defaultValue = "txt") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "standard") String assetType,
-      @RequestParam(value = "name", defaultValue = "") String assetName) {
+      @RequestParam(value = "name", defaultValue = "") String assetName,
+      @RequestParam(value = "isPublic", defaultValue = "true") boolean isPublic,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal) {
     // Persist New Asset
     DBObject metaData = new BasicDBObject();
     metaData.put("name", assetName);
     metaData.put("content-type", contentType);
     metaData.put("file-type", fileType);
     metaData.put("asset-type", assetType);
+    metaData.put("user", aeselPrincipal);
+    metaData.put("isPublic", isPublic);
     String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
     metaData.put("created-dttm", timeStamp);
     String newId = saveAsset(file, metaData, fileType);
