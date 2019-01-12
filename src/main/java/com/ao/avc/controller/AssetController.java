@@ -140,8 +140,8 @@ public class AssetController {
       query.addCriteria(Criteria.where("_id").is(id));
       if (!(user.isEmpty())) {
         query.addCriteria(new Criteria().orOperator(
-            Criteria.where("isPublic").is(true),
-            Criteria.where("user").is(user)));
+            Criteria.where("metadata.isPublic").is(true),
+            Criteria.where("metadata.user").is(user)));
       }
       gridFsdbFile = gridFsTemplate.findOne(query);
     } catch (Exception e) {
