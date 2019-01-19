@@ -27,6 +27,12 @@ import org.springframework.data.mongodb.repository.Query;
 
 public interface AssetCollectionRepository extends MongoRepository<AssetCollection, String> {
 
+  @Query("{ '$and': [ {'$or': [ {'isPublic': true}, {'user': ?1} ]}, {'id': { '$in': ?0 }} ]}")
+  public List<AssetCollection> findPublicOrPrivateByKeyList(List<String> ids, String user);
+
+  @Query("{ 'id': { '$in': ?0 } }")
+  public List<AssetCollection> findByKeyList(List<String> ids);
+
   @Query("{ '$or': [ {'isPublic': true}, {'user': ?0} ] }")
   public List<AssetCollection> findPublicOrPrivate(String user, Pageable pageable);
 
