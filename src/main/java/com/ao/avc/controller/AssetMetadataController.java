@@ -22,6 +22,7 @@ import com.ao.avc.dao.AssetRelationshipRepository;
 import com.ao.avc.model.AssetHistory;
 import com.ao.avc.model.AssetMetadata;
 import com.ao.avc.model.AssetRelationship;
+import com.ao.avc.query.BulkRequest;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -113,7 +114,7 @@ public class AssetMetadataController {
   }
 
   private BasicDBObject generateQuery(String contentType, String fileType,
-      String assetType, String assetName, String assetDesc, String aeselPrincipal) {
+      String assetType, String assetName, String aeselPrincipal) {
     BasicDBObject query = new BasicDBObject();
     ArrayList<BasicDBObject> queryObjectList = new ArrayList<BasicDBObject>();
     if (!(contentType.isEmpty())) {
@@ -180,7 +181,6 @@ public class AssetMetadataController {
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "") String assetType,
       @RequestParam(value = "name", defaultValue = "") String assetName,
-      @RequestParam(value = "description", defaultValue = "") String assetDesc,
       @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal) {
     logger.info("Responding to Asset Count Request");
     HttpHeaders responseHeaders = new HttpHeaders();
@@ -189,7 +189,7 @@ public class AssetMetadataController {
     // Run the Mongo Query
     BasicDBObject query = generateQuery(contentType, fileType,
                                         assetType, assetName,
-                                        assetDesc, aeselPrincipal);
+                                        aeselPrincipal);
     long assetCount = mongoCollection.count(query);
 
     // Setup the response
@@ -220,7 +220,7 @@ public class AssetMetadataController {
       // Run the Mongo Query
       BasicDBObject query = generateQuery(contentType, fileType,
                                           assetType, assetName,
-                                          assetDesc, aeselPrincipal);
+                                          aeselPrincipal);
       resultDocs = mongoCollection.find(query)
                                   .sort(Sorts.ascending("_id"))
                                   .skip(queryOffset)
@@ -267,10 +267,7 @@ public class AssetMetadataController {
       query.put("_id", inQuery);
 
       // Execute the Mongo Query
-      resultDocs = mongoCollection.find(query)
-                                  .sort(Sorts.ascending("_id"))
-                                  .skip(queryOffset)
-                                  .limit(queryLimit);
+      resultDocs = mongoCollection.find(query);
 
     // Error Handling
     } catch (Exception e) {
