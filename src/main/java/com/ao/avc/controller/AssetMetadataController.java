@@ -260,8 +260,12 @@ public class AssetMetadataController {
     try {
 
       // Build the Mongo Query
+      ArrayList<ObjectId> idList = new ArrayList<ObjectId>();
+      for (String id : inpRequest.getIds()) {
+        idList.add(0, new ObjectId(id));
+      }
       BasicDBObject inQuery = new BasicDBObject();
-      inQuery.put("$in", inpRequest.getIds());
+      inQuery.put("$in", idList);
 
       BasicDBObject query = new BasicDBObject();
       query.put("_id", inQuery);
