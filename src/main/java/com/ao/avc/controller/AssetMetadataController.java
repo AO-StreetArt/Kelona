@@ -22,6 +22,7 @@ import com.ao.avc.dao.AssetRelationshipRepository;
 import com.ao.avc.model.AssetHistory;
 import com.ao.avc.model.AssetMetadata;
 import com.ao.avc.model.AssetRelationship;
+import com.ao.avc.query.BulkRequest;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -112,23 +113,8 @@ public class AssetMetadataController {
     mongoCollection = mongoDb.getCollection(mongoCollectionName);
   }
 
-  /**
-   * Count assets
-   */
-  @GetMapping("/v1/asset/count")
-  @ResponseBody
-  public ResponseEntity<String> countAssets(
-      @RequestParam(value = "content-type", defaultValue = "") String contentType,
-      @RequestParam(value = "file-type", defaultValue = "") String fileType,
-      @RequestParam(value = "asset-type", defaultValue = "") String assetType,
-      @RequestParam(value = "name", defaultValue = "") String assetName,
-      @RequestParam(value = "description", defaultValue = "") String assetDesc,
-      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal) {
-    logger.info("Responding to Asset Count Request");
-    HttpHeaders responseHeaders = new HttpHeaders();
-    responseHeaders.set("Content-Type", "application/json");
-
-    // Run the Mongo Query
+  private BasicDBObject generateQuery(String contentType, String fileType,
+      String assetType, String assetName, String aeselPrincipal) {
     BasicDBObject query = new BasicDBObject();
     ArrayList<BasicDBObject> queryObjectList = new ArrayList<BasicDBObject>();
     if (!(contentType.isEmpty())) {
@@ -161,6 +147,49 @@ public class AssetMetadataController {
       queryObjectList.add(innerOrQuery);
     }
     query.put("$and", queryObjectList);
+    return query;
+  }
+
+  private List<AssetMetadata> generateResultList(MongoCursor<Document> returnCursor) {
+    // Load asset metadata into the return list
+    List<AssetMetadata> returnList = new ArrayList<AssetMetadata>();
+    while (returnCursor.hasNext()) {
+      Document dbDoc = returnCursor.next();
+      Document defaultDoc = new Document();
+      Document metaDoc = dbDoc.get("metadata", defaultDoc);
+      AssetMetadata returnDoc = new AssetMetadata();
+      logger.debug("Metadata returned from Query: " + metaDoc.toString());
+      returnDoc.setKey(Hex.encodeHexString(dbDoc.getObjectId("_id").toByteArray()));
+      returnDoc.setContentType(metaDoc.getString("content-type"));
+      returnDoc.setName(metaDoc.getString("name"));
+      returnDoc.setDescription(metaDoc.getString("description"));
+      returnDoc.setFileType(metaDoc.getString("file-type"));
+      returnDoc.setAssetType(metaDoc.getString("asset-type"));
+      returnDoc.setCreatedTimestamp(metaDoc.getString("created-dttm"));
+      returnList.add(returnDoc);
+    }
+    return returnList;
+  }
+
+  /**
+   * Count assets
+   */
+  @GetMapping("/v1/asset/count")
+  @ResponseBody
+  public ResponseEntity<String> countAssets(
+      @RequestParam(value = "content-type", defaultValue = "") String contentType,
+      @RequestParam(value = "file-type", defaultValue = "") String fileType,
+      @RequestParam(value = "asset-type", defaultValue = "") String assetType,
+      @RequestParam(value = "name", defaultValue = "") String assetName,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal) {
+    logger.info("Responding to Asset Count Request");
+    HttpHeaders responseHeaders = new HttpHeaders();
+    responseHeaders.set("Content-Type", "application/json");
+
+    // Run the Mongo Query
+    BasicDBObject query = generateQuery(contentType, fileType,
+                                        assetType, assetName,
+                                        aeselPrincipal);
     long assetCount = mongoCollection.count(query);
 
     // Setup the response
@@ -185,47 +214,13 @@ public class AssetMetadataController {
       throws MalformedURLException, IOException {
     logger.info("Responding to Asset Find Request");
     HttpHeaders responseHeaders = new HttpHeaders();
-    GridFSFindIterable gridFsdbFiles;
     FindIterable<Document> resultDocs;
     try {
 
       // Run the Mongo Query
-      ArrayList<BasicDBObject> queryObjectList = new ArrayList<BasicDBObject>();
-      BasicDBObject query = new BasicDBObject();
-      if (!(contentType.isEmpty())) {
-        BasicDBObject innerCTypeQuery = new BasicDBObject();
-        innerCTypeQuery.put("metadata.content-type", contentType);
-        queryObjectList.add(innerCTypeQuery);
-      } else if (!(fileType.isEmpty())) {
-        BasicDBObject innerFTypeQuery = new BasicDBObject();
-        innerFTypeQuery.put("metadata.file-type", fileType);
-        queryObjectList.add(innerFTypeQuery);
-      } else if (!(assetType.isEmpty())) {
-        BasicDBObject innerATypeQuery = new BasicDBObject();
-        innerATypeQuery.put("metadata.asset-type", assetType);
-        queryObjectList.add(innerATypeQuery);
-      } else if (!(assetName.isEmpty())) {
-        BasicDBObject innerNameQuery = new BasicDBObject();
-        innerNameQuery.put("metadata.name", assetName);
-        queryObjectList.add(innerNameQuery);
-      } else if (!(assetKey.isEmpty())) {
-        BasicDBObject innerIdQuery = new BasicDBObject();
-        innerIdQuery.put("_id", new ObjectId(assetKey));
-        queryObjectList.add(innerIdQuery);
-      }
-      if (!(aeselPrincipal.isEmpty())) {
-        BasicDBObject innerUserQuery = new BasicDBObject();
-        innerUserQuery.put("user", aeselPrincipal);
-        BasicDBObject innerPublicQuery = new BasicDBObject();
-        innerPublicQuery.put("isPublic", true);
-        ArrayList<BasicDBObject> innerQueryList = new ArrayList<BasicDBObject>();
-        innerQueryList.add(innerUserQuery);
-        innerQueryList.add(innerPublicQuery);
-        BasicDBObject innerOrQuery = new BasicDBObject();
-        innerOrQuery.put("$or", innerQueryList);
-        queryObjectList.add(innerOrQuery);
-      }
-      query.put("$and", queryObjectList);
+      BasicDBObject query = generateQuery(contentType, fileType,
+                                          assetType, assetName,
+                                          aeselPrincipal);
       resultDocs = mongoCollection.find(query)
                                   .sort(Sorts.ascending("_id"))
                                   .skip(queryOffset)
@@ -244,23 +239,54 @@ public class AssetMetadataController {
     }
 
     // Load asset metadata into the return list
-    List<AssetMetadata> returnList = new ArrayList<AssetMetadata>();
-    MongoCursor<Document> returnCursor = resultDocs.iterator();
-    while (returnCursor.hasNext()) {
-      Document dbDoc = returnCursor.next();
-      Document defaultDoc = new Document();
-      Document metaDoc = dbDoc.get("metadata", defaultDoc);
-      AssetMetadata returnDoc = new AssetMetadata();
-      logger.debug("Metadata returned from Query: " + metaDoc.toString());
-      returnDoc.setKey(Hex.encodeHexString(dbDoc.getObjectId("_id").toByteArray()));
-      returnDoc.setContentType(metaDoc.getString("content-type"));
-      returnDoc.setName(metaDoc.getString("name"));
-      returnDoc.setDescription(metaDoc.getString("description"));
-      returnDoc.setFileType(metaDoc.getString("file-type"));
-      returnDoc.setAssetType(metaDoc.getString("asset-type"));
-      returnDoc.setCreatedTimestamp(metaDoc.getString("created-dttm"));
-      returnList.add(returnDoc);
+    List<AssetMetadata> returnList = generateResultList(resultDocs.iterator());
+
+    responseHeaders.set("Content-Type", "application/json");
+    return new ResponseEntity<List<AssetMetadata>>(returnList, responseHeaders, HttpStatus.OK);
+  }
+
+  /**
+  * Find Assets by key in bulk.
+  */
+  @PostMapping("/v1/bulk/asset")
+  @ResponseBody
+  public ResponseEntity<List<AssetMetadata>> findAssets(
+      @RequestBody BulkRequest inpRequest,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal)
+      throws MalformedURLException, IOException {
+    logger.info("Responding to Asset Metadata Bulk Request");
+    HttpHeaders responseHeaders = new HttpHeaders();
+    FindIterable<Document> resultDocs;
+    try {
+
+      // Build the Mongo Query
+      ArrayList<ObjectId> idList = new ArrayList<ObjectId>();
+      for (String id : inpRequest.getIds()) {
+        idList.add(0, new ObjectId(id));
+      }
+      BasicDBObject inQuery = new BasicDBObject();
+      inQuery.put("$in", idList);
+
+      BasicDBObject query = new BasicDBObject();
+      query.put("_id", inQuery);
+
+      // Execute the Mongo Query
+      resultDocs = mongoCollection.find(query);
+
+    // Error Handling
+    } catch (Exception e) {
+      logger.error("Error Retrieving Asset from Mongo: ", e);
+      return new ResponseEntity<List<AssetMetadata>>(
+          new ArrayList<AssetMetadata>(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    if (resultDocs == null) {
+      logger.error("Null Asset Retrieved from Mongo");
+      return new ResponseEntity<List<AssetMetadata>>(
+          new ArrayList<AssetMetadata>(), responseHeaders, HttpStatus.NO_CONTENT);
+    }
+
+    // Load asset metadata into the return list
+    List<AssetMetadata> returnList = generateResultList(resultDocs.iterator());
     responseHeaders.set("Content-Type", "application/json");
     return new ResponseEntity<List<AssetMetadata>>(returnList, responseHeaders, HttpStatus.OK);
   }

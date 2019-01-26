@@ -19,6 +19,7 @@ package com.ao.avc.controller;
 
 import com.ao.avc.dao.AssetCollectionRepository;
 import com.ao.avc.model.AssetCollection;
+import com.ao.avc.query.BulkRequest;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -129,6 +130,30 @@ public class AssetCollectionController {
 
     // Create and return the new HTTP Response
     return new ResponseEntity<AssetCollection>(returnCollection, responseHeaders, returnCode);
+  }
+
+  /**
+  * Get Asset Collections with a bulk query.
+  */
+  @PostMapping("/v1/bulk/collection")
+  @ResponseBody
+  public ResponseEntity<List<AssetCollection>> getCollections(
+      @RequestBody BulkRequest inpRequest,
+      @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal) {
+    logger.info("Responding to Asset Collection Bulk Request");
+    HttpStatus returnCode = HttpStatus.OK;
+    HttpHeaders responseHeaders = new HttpHeaders();
+    responseHeaders.set("Content-Type", "application/json");
+    List<AssetCollection> returnCollections = null;
+
+    if (aeselPrincipal.isEmpty()) {
+      returnCollections = assetCollections.findByKeyList(inpRequest.getIds());
+    } else {
+      returnCollections = assetCollections.findPublicOrPrivateByKeyList(inpRequest.getIds(), aeselPrincipal);
+    }
+
+    // Create and return the new HTTP Response
+    return new ResponseEntity<List<AssetCollection>>(returnCollections, responseHeaders, returnCode);
   }
 
   /**
@@ -318,7 +343,7 @@ public class AssetCollectionController {
   }
 
   /**
-   * Add a tag to an existing Project.
+   * Add a tag to an existing collection.
    */
   @PutMapping("/v1/collection/{collKey}/tags/{tagValue}")
   @ResponseBody
@@ -331,7 +356,7 @@ public class AssetCollectionController {
   }
 
   /**
-   * Remove a tag from an existing Project.
+   * Remove a tag from an existing collection.
    */
   @DeleteMapping("/v1/collection/{collKey}/tags/{tagValue}")
   @ResponseBody
