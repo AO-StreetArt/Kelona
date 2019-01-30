@@ -146,7 +146,9 @@ public class AssetMetadataController {
       innerOrQuery.put("$or", innerQueryList);
       queryObjectList.add(innerOrQuery);
     }
-    query.put("$and", queryObjectList);
+    if (queryObjectList.size() > 0) {
+      query.put("$and", queryObjectList);
+    }
     return query;
   }
 
