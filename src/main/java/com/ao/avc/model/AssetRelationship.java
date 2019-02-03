@@ -35,9 +35,14 @@ public class AssetRelationship {
   public String id;
   // Id of the Asset referred to by the relationship
   public String assetId;
+  // The path or ID within the asset which needs to be imported,
+  // (ie. the name of the object to import within a .blend file)
+  public String assetSubId;
   // The type of relationship (ie. Scene, Object, Thumbnail, etc.)
   public String relationshipType;
-  // The ID of the related data element
+  // The subtype of the relationship (ie. full, mesh, material, texture, etc)
+  public String relationshipSubtype;
+  // The ID of the related data element (ie. object or scene)
   public String relatedId;
 
 }
