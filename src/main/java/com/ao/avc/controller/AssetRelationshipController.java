@@ -138,7 +138,9 @@ public class AssetRelationshipController {
     if (updatedRelationships.size() > 0) {
       for (AssetRelationship relation : updatedRelationships) {
         relation.setAssetId(inpRelationship.getAssetId());
+        relation.setAssetSubId(inpRelationship.getAssetSubId());
         relation.setRelationshipType(inpRelationship.getRelationshipType());
+        relation.setRelationshipSubtype(inpRelationship.getRelationshipSubtype());
         relation.setRelatedId(inpRelationship.getRelatedId());
         assetRelationships.save(relation);
       }
