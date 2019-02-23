@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "59ebc802-7c67-4d7f-9049-f82db221bb10",
-		"name": "Avc copy",
+		"_postman_id": "6ca2de30-5483-4afe-a3ce-15bf025143fc",
+		"name": "Avc copy copy",
 		"description": "Run Basic Tests on the Aesel Asset API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -36,7 +36,12 @@
 					"type": "noauth"
 				},
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "formdata",
 					"formdata": [
@@ -82,7 +87,12 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -130,7 +140,12 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -177,7 +192,12 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -232,7 +252,12 @@
 					"type": "noauth"
 				},
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "formdata",
 					"formdata": [
@@ -286,7 +311,12 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -335,7 +365,12 @@
 					"type": "noauth"
 				},
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "formdata",
 					"formdata": [
@@ -402,7 +437,12 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -425,6 +465,59 @@
 							"key": "related",
 							"value": "{{ASSET_ID2}}"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Bulk Retrieve",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "04f040a6-3e23-4ffe-84d9-0b88bc4999fd",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"ids\": [\"{{ASSET_ID}}\", \"{{ASSET_ID2}}\"]}"
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/bulk/asset",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"bulk",
+						"asset"
 					]
 				}
 			},
@@ -463,6 +556,10 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
 					}
 				],
 				"body": {
@@ -476,6 +573,112 @@
 					],
 					"path": [
 						"v1",
+						"relationship"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query All Relationships",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2afbf6c0-2920-4557-a616-8097428a8762",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.length).to.not.eql(0);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/relationship",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"relationship"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Bulk Relationship Retrieve",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9ea8457d-0792-4bc7-96cb-f960f8c894df",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"assetIds\": [\"{{ASSET_ID2}}\", \"{{ASSET_ID3}}\"], \"relatedIds\": []}"
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/bulk/relationship",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"bulk",
 						"relationship"
 					]
 				}
@@ -511,7 +714,12 @@
 			],
 			"request": {
 				"method": "DELETE",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -565,7 +773,12 @@
 			],
 			"request": {
 				"method": "DELETE",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -606,7 +819,12 @@
 			],
 			"request": {
 				"method": "DELETE",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -660,6 +878,10 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
 					}
 				],
 				"body": {
@@ -701,7 +923,12 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -715,6 +942,110 @@
 						"v1",
 						"collection",
 						"{{COLLECTION_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Tag to Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ab2e67aa-9db8-494d-9b0c-e6facfecb613",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/collection/{{COLLECTION_ID}}/tags/anotherTestTag",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"collection",
+						"{{COLLECTION_ID}}",
+						"tags",
+						"anotherTestTag"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove Tag from Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ab2e67aa-9db8-494d-9b0c-e6facfecb613",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/collection/{{COLLECTION_ID}}/tags/anotherTestTag",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"collection",
+						"{{COLLECTION_ID}}",
+						"tags",
+						"anotherTestTag"
 					]
 				}
 			},
@@ -750,6 +1081,10 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
 					}
 				],
 				"body": {
@@ -765,6 +1100,60 @@
 						"v1",
 						"collection",
 						"{{COLLECTION_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Bulk Retrieve Asset Collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7be899fc-a572-4dec-bf4c-374100aa8eb9",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 5000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"ids\": [\"{{COLLECTION_ID}}\"]}"
+				},
+				"url": {
+					"raw": "{{AESEL_URL}}/v1/bulk/collection",
+					"host": [
+						"{{AESEL_URL}}"
+					],
+					"path": [
+						"v1",
+						"bulk",
+						"collection"
 					]
 				}
 			},
@@ -792,7 +1181,12 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -838,7 +1232,12 @@
 			],
 			"request": {
 				"method": "DELETE",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Aesel-Principal",
+						"value": "test"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
