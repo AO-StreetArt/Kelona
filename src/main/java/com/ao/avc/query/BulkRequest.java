@@ -26,5 +26,7 @@ import lombok.Data;
 public class BulkRequest {
 
   public List<String> ids;
+  public List<String> assetIds;
+  public List<String> relatedIds;
 
 }

@@ -264,7 +264,11 @@ public class AssetController {
     metaData.put("content-type", contentType);
     metaData.put("file-type", fileType);
     metaData.put("asset-type", assetType);
-    metaData.put("user", aeselPrincipal);
+    if (aeselPrincipal != null) {
+      metaData.put("user", aeselPrincipal);
+    } else {
+      metaData.put("user", "");
+    }
     metaData.put("isPublic", isPublic);
     String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
     metaData.put("created-dttm", timeStamp);

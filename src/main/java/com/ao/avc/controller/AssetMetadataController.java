@@ -114,8 +114,13 @@ public class AssetMetadataController {
   }
 
   private BasicDBObject generateQuery(String contentType, String fileType,
-      String assetType, String assetName, String aeselPrincipal) {
+      String assetType, String assetName, String assetKey,
+      String aeselPrincipal) {
     BasicDBObject query = new BasicDBObject();
+    if (!(assetKey.isEmpty())) {
+      query.put("_id", new ObjectId(assetKey));
+      return query;
+    }
     ArrayList<BasicDBObject> queryObjectList = new ArrayList<BasicDBObject>();
     if (!(contentType.isEmpty())) {
       BasicDBObject innerCTypeQuery = new BasicDBObject();
@@ -136,9 +141,9 @@ public class AssetMetadataController {
     }
     if (!(aeselPrincipal.isEmpty())) {
       BasicDBObject innerUserQuery = new BasicDBObject();
-      innerUserQuery.put("user", aeselPrincipal);
+      innerUserQuery.put("metadata.user", aeselPrincipal);
       BasicDBObject innerPublicQuery = new BasicDBObject();
-      innerPublicQuery.put("isPublic", true);
+      innerPublicQuery.put("metadata.isPublic", true);
       ArrayList<BasicDBObject> innerQueryList = new ArrayList<BasicDBObject>();
       innerQueryList.add(innerUserQuery);
       innerQueryList.add(innerPublicQuery);
@@ -146,8 +151,10 @@ public class AssetMetadataController {
       innerOrQuery.put("$or", innerQueryList);
       queryObjectList.add(innerOrQuery);
     }
-    if (queryObjectList.size() > 0) {
+    if (queryObjectList.size() > 1) {
       query.put("$and", queryObjectList);
+    } else if (queryObjectList.size() > 0) {
+      return queryObjectList.get(0);
     }
     return query;
   }
@@ -168,6 +175,7 @@ public class AssetMetadataController {
       returnDoc.setFileType(metaDoc.getString("file-type"));
       returnDoc.setAssetType(metaDoc.getString("asset-type"));
       returnDoc.setCreatedTimestamp(metaDoc.getString("created-dttm"));
+      returnDoc.setUser(metaDoc.getString("user"));
       returnList.add(returnDoc);
     }
     return returnList;
@@ -182,6 +190,7 @@ public class AssetMetadataController {
       @RequestParam(value = "content-type", defaultValue = "") String contentType,
       @RequestParam(value = "file-type", defaultValue = "") String fileType,
       @RequestParam(value = "asset-type", defaultValue = "") String assetType,
+      @RequestParam(value = "key", defaultValue = "") String assetKey,
       @RequestParam(value = "name", defaultValue = "") String assetName,
       @RequestHeader(name="X-Aesel-Principal", defaultValue="") String aeselPrincipal) {
     logger.info("Responding to Asset Count Request");
@@ -190,7 +199,7 @@ public class AssetMetadataController {
 
     // Run the Mongo Query
     BasicDBObject query = generateQuery(contentType, fileType,
-                                        assetType, assetName,
+                                        assetType, assetName, assetKey,
                                         aeselPrincipal);
     long assetCount = mongoCollection.count(query);
 
@@ -221,7 +230,7 @@ public class AssetMetadataController {
 
       // Run the Mongo Query
       BasicDBObject query = generateQuery(contentType, fileType,
-                                          assetType, assetName,
+                                          assetType, assetName, assetKey,
                                           aeselPrincipal);
       resultDocs = mongoCollection.find(query)
                                   .sort(Sorts.ascending("_id"))

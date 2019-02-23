@@ -19,6 +19,7 @@ package com.ao.avc.controller;
 
 import com.ao.avc.dao.AssetRelationshipRepository;
 import com.ao.avc.model.AssetRelationship;
+import com.ao.avc.query.BulkRequest;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -40,6 +41,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpHeaders;
@@ -50,6 +53,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -166,27 +170,34 @@ public class AssetRelationshipController {
   public ResponseEntity<List<AssetRelationship>> findRelations(
       @RequestParam(value = "type", defaultValue = "") String type,
       @RequestParam(value = "asset", defaultValue = "") String asset,
-      @RequestParam(value = "related", defaultValue = "") String related) {
+      @RequestParam(value = "related", defaultValue = "") String related,
+      @RequestParam(value = "num_records", defaultValue = "10") int recordsInPage,
+      @RequestParam(value = "page", defaultValue = "0") int pageNum) {
     logger.info("Responding to Asset Relationship Query");
     HttpStatus returnCode = HttpStatus.OK;
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("Content-Type", "application/json");
+    Pageable pageable = new PageRequest(pageNum, recordsInPage);
+
     List<AssetRelationship> existingRelationships;
-    if (asset.isEmpty() && type.isEmpty()) {
+    if (asset.isEmpty() && type.isEmpty() && !(related.isEmpty())) {
       existingRelationships = assetRelationships.findByRelatedId(related);
-    } else if (type.isEmpty() && related.isEmpty()) {
-      existingRelationships = assetRelationships.findByAssetId(related);
-    } else if (asset.isEmpty() && related.isEmpty()) {
-      existingRelationships = assetRelationships.findByRelationshipType(related);
-    } else if (asset.isEmpty()) {
+    } else if (type.isEmpty() && related.isEmpty() && !(asset.isEmpty())) {
+      existingRelationships = assetRelationships.findByAssetId(asset);
+    } else if (asset.isEmpty() && related.isEmpty() && !(type.isEmpty())) {
+      existingRelationships = assetRelationships.findByRelationshipType(type);
+    } else if (asset.isEmpty() && !(related.isEmpty()) && !(type.isEmpty())) {
       existingRelationships = assetRelationships.findByRelationshipTypeAndRelatedId(type, related);
-    } else if (related.isEmpty()) {
-      existingRelationships = assetRelationships.findByAssetIdAndRelationshipType(asset, related);
+    } else if (related.isEmpty() && !(asset.isEmpty()) && !(type.isEmpty())) {
+      existingRelationships = assetRelationships.findByAssetIdAndRelationshipType(asset, type);
+    } else if (related.isEmpty() && asset.isEmpty() && type.isEmpty()) {
+      existingRelationships = assetRelationships.findAll(pageable).getContent();
     } else {
       existingRelationships = new ArrayList<AssetRelationship>();
       returnCode = HttpStatus.BAD_REQUEST;
       logger.warn("Incorrect Input: Invalid Query Parameter Set");
     }
+
     if (existingRelationships.size() == 0) {
       returnCode = HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE;
       logger.debug("No Asset Relationships found");
@@ -194,6 +205,39 @@ public class AssetRelationshipController {
 
     // Create and return the new HTTP Response
     return new ResponseEntity<List<AssetRelationship>>(existingRelationships,
+                                                       responseHeaders,
+                                                       returnCode);
+  }
+
+  /**
+  * Get relationships in bulk.
+  */
+  @PostMapping("/v1/bulk/relationship")
+  @ResponseBody
+  public ResponseEntity<List<AssetRelationship>> bulkGetRelations(
+      @RequestBody BulkRequest bulkQuery) {
+    logger.info("Executing Bulk Relationship Query");
+    List<AssetRelationship> resultRelations = null;
+    if (bulkQuery.getAssetIds() != null && bulkQuery.getAssetIds().size() > 0) {
+      logger.debug("Bulk Asset ID Query detected: {}", bulkQuery.getAssetIds());
+      resultRelations = assetRelationships.findByAssetIds(bulkQuery.getAssetIds());
+    } else if (bulkQuery.getRelatedIds() != null && bulkQuery.getRelatedIds().size() > 0) {
+      logger.debug("Bulk Related ID Query detected: {}", bulkQuery.getRelatedIds());
+      resultRelations = assetRelationships.findByRelatedIds(bulkQuery.getRelatedIds());
+    } else {
+      logger.debug("Empty query detected");
+      resultRelations = new ArrayList<AssetRelationship>();
+    }
+    logger.debug("Query results:");
+    for (AssetRelationship rel : resultRelations) {
+      logger.debug(rel);
+    }
+
+    // Send the response
+    HttpStatus returnCode = HttpStatus.OK;
+    HttpHeaders responseHeaders = new HttpHeaders();
+    responseHeaders.set("Content-Type", "application/json");
+    return new ResponseEntity<List<AssetRelationship>>(resultRelations,
                                                        responseHeaders,
                                                        returnCode);
   }

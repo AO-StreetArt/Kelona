@@ -20,6 +20,7 @@ package com.ao.avc.dao;
 import com.ao.avc.model.AssetRelationship;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 
 public interface AssetRelationshipRepository extends MongoRepository<AssetRelationship, String> {
 
@@ -42,4 +43,10 @@ public interface AssetRelationshipRepository extends MongoRepository<AssetRelati
   public List<AssetRelationship> findByAssetIdAndRelationshipTypeAndRelatedId(String asset,
                                                                               String type,
                                                                               String related);
+
+  @Query("{ 'assetId': { '$in': ?0 } }")
+  public List<AssetRelationship> findByAssetIds(List<String> assetIds);
+
+  @Query("{ 'relatedId': { '$in': ?0 } }")
+  public List<AssetRelationship> findByRelatedIds(List<String> relatedIds);
 }
